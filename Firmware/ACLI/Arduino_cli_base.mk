@@ -4,9 +4,15 @@
 #
 # Install the arduino-cli from here
 # https://github.com/arduino/arduino-cli
+#
+# Version History
+#
+#	0.20 - SL - 2019-12-02 - build or deploy if serial port is available
+#	0.01 - SL - 2019-12-01 - initial version
 
 PROJDIR ?= ${shell basename ${shell pwd}}
 
+# expexted values.  If they're not set, these are reasonable start points
 SERPORT ?= /dev/Serial0
 ACLI ?= arduino-cli
 
@@ -21,11 +27,17 @@ FN_HEX := ${BUILDFNBASE}.hex
 
 GENFILES = ${FN_ELF} ${FN_HEX}
 
-
 ###########
 #
 
-all: deploy
+# if the serial port is available, change our "all" target
+ifdef SERPORT
+all: build deploy
+
+else
+all: build
+
+endif
 
 clean: 
 	@echo "Removing HEX and ELF files generated..."
@@ -34,16 +46,20 @@ clean:
 
 ${FN_HEX}: build
 
-
 build:
 	@echo
 	@echo "+ Building project files..."
 	${ACLI} compile --fqbn ${FQBN}
 
-deploy: build
+ifdef SERPORT
+deploy:
 	@echo
 	@echo "+ Deploying to ${SERPORT}..."
 	${ACLI} upload -p ${SERPORT} --fqbn ${FQBN} 
+else
+deploy:
+	@echo "! Cannot deploy: SERPORT (serial port) is not defined."
+endif
 
 
 ##########
