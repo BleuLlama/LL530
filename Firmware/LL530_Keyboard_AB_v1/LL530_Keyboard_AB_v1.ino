@@ -1,29 +1,73 @@
+/* LL530 Firmware
+ *  
+ *  For LL530 v1 hardware
+ *  
+ *  v0.87 2019-07-08 joystick/mouse support starting
+ *  v0.86 2019-02-17 Help-A/B for explore mode
+ *  v0.85 2018-12-20 Keyboard working, help key remapping done
+ */
+
+
+#define kLL530_Version "LL530_Keyboard v0.87b"
+
+
 #include <Keyboard.h>       // has all of the HID KeyReport stuff we need
 #include <Mouse.h>          // for mouse IO
+#include <Joystick.h>
 #include <avr/pgmspace.h>   // PROGMEM support for our tables
 #include <EEPROM.h>         // for saving the keymap setting
 #include "Platform.h"
 #include "amiga_keys.h"     // header for AMIGA key codes
 #include "usb_hid_keys.h"   // header for HID key codes
 #include "Leds.h"           // for led settings
+#include "Ports.h"          // for mouse/joystick ports
+#include "Settings.h"       // Settings
 
+
+
+// Use LL530 hardware
 #define HARDWARE_LL530
 
-#undef kOUT
+// is the keyboard reset line connected?
+#undef kUseHardResetLine
 
-#ifdef kOUT
+// switches for debugging/dev, to send serial characters instead of HID keypresses
+#undef kSerialInsteadOfHID
+
+#ifdef kSerialInsteadOfHID
 #define kDisableHIDOutput (1)
 #endif
 
+#undef kUseKeymaps    // we don't need to keep track of keymaps. seriously.
 
-void TypeString( char * str );
+
+// Usage modes for general system usage
+#define kUsageMode_Normal   (0x00)  /* normal operation */
+#define kUsageMode_ExploreA (0x10)
+#define kUsageMode_ExploreB (0x11)
+
+uint8_t usageMode = kUsageMode_Normal;
+unsigned long usageModeTimeout = 0;
+
+
+uint8_t typeStuff = 0;
+
+void TypeStuff( char * str );
+void clearKeyboard();
+void keystroke(uint8_t k, uint8_t m);
+
+
+
+Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID+1, JOYSTICK_TYPE_JOYSTICK,
+  kJoystickNButtons, 0,  // Button Count, Hat Switch Count
+  true, true, false,     // X and Y, but no Z Axis
+  true, true, false,     // Rx Ry, no Rz
+  false, false,          // No rudder or throttle
+  false, false, false);  // No accelerator, brake, or steering
+
 
 #define HID_SendReport(id,data,len) HID().SendReport(id,data,len) // IDE 1.6.9
 
-
-//
-#define BITMASK_JOY1    0b10011111    // IO 0..5,7
-#define BITMASK_JOY2    0b11110011    // IO A0..A5
 
 #define SYNCH_HI        0
 #define SYNCH_LO        1
@@ -34,10 +78,12 @@ void TypeString( char * str );
 
 KeyReport _keyReport;
 uint32_t counter = 0;
-uint8_t Joy, MemoJoy1, MemoJoy2, state, bitn, key, help_pressed, keydown;
+uint8_t state, bitn, key, del_pressed, help_pressed, keydown;
 
 ///////////////////////////////////////////////////////////////
 // Keymap settings and handling
+
+#ifdef kUseKeymaps
 
 #define kKeymap_US (0) /* USA */
 #define kKeymap_SE (1) /* Sweden */
@@ -48,42 +94,42 @@ uint8_t Joy, MemoJoy1, MemoJoy2, state, bitn, key, help_pressed, keydown;
 #define kKeymap_Load (0xff)
 
 uint8_t currentKeymap = kKeymap_US;
-#define kSetting_KEYMAP (0)
 
 void KeymapSet( unsigned char k )
 {
-  if( k == kKeymap_Load ) {
+  if ( k == kKeymap_Load ) {
     // load from EEPROM
     currentKeymap = EEPROM.read( kSetting_KEYMAP );
-    if( currentKeymap < 0 || currentKeymap > 5 ) {
+    if ( currentKeymap < 0 || currentKeymap > 5 ) {
       currentKeymap = 0;
       EEPROM.write( kSetting_KEYMAP, k );
     }
   } else {
-    if( k > 5 ) return;
+    if ( k > 5 ) return;
     currentKeymap = k;
     // save to EEPROM
     EEPROM.update( kSetting_KEYMAP, k );
   }
-  switch( k ){
-  case( kKeymap_US ): TypeStuff( "#US\n" ); break;
-  case( kKeymap_SE ): TypeStuff( "#SE\n" ); break;
-  case( kKeymap_DE ): TypeStuff( "#DE\n" ); break;
-  case( kKeymap_FR ): TypeStuff( "#FR/BE\n" ); break;
-  case( kKeymap_GB ): TypeStuff( "#GB/UK\n" ); break;
-  case( kKeymap_FI ): TypeStuff( "#FI/DK/NO/IS\n" ); break;
+  switch ( k ) {
+    case ( kKeymap_US ): TypeStuff( "#US\n" ); break;
+    case ( kKeymap_SE ): TypeStuff( "#SE\n" ); break;
+    case ( kKeymap_DE ): TypeStuff( "#DE\n" ); break;
+    case ( kKeymap_FR ): TypeStuff( "#FR/BE\n" ); break;
+    case ( kKeymap_GB ): TypeStuff( "#GB/UK\n" ); break;
+    case ( kKeymap_FI ): TypeStuff( "#FI/DK/NO/IS\n" ); break;
   }
 }
 
+#endif
 
 ///////////////////////////////////////////////////////////////
-// US Keymap (base)
+// US Standard Keymap
 
-// for this table (The US Keymap), the index into the array is the 
+// for this table (The US Keymap), the index into the array is the
 // amiga scan code.  For example, if the user presses a 'W', the
 // keyboard sends code 0x11. If you look at index 0x11, you will see
 // that it mapping to the HID keycode KEY_W
-// keys >= AMIGA_FIRST_META (0x60) are specials, and are applied as 
+// keys >= AMIGA_FIRST_META (0x60) are specials, and are applied as
 // masks to the meta mask.
 const uint8_t ktab[]  = {
   KEY_GRAVE,    /* 0x00  ` ~ */
@@ -198,10 +244,10 @@ const uint8_t ktab[]  = {
   KEYM_RIGHTALT,    /* 0x65  Right Alt */
   KEYM_LEFTMETA,    /* 0x66  Left Amiga */
   KEYM_RIGHTMETA,   /* 0x67  Right Amiga */
-  
 
-  /* Proper meta keys: (not used) 
-  KEY_LEFTSHIFT,  /* 0x60  Left Shift */
+
+  /* Proper meta keys: (not used) */
+    KEY_LEFTSHIFT,  /* 0x60  Left Shift */
   KEY_RIGHTSHIFT, /* 0x61  Right Shift */
   0, //KEY_CAPSLOCK,   /* 0x62  Caps Lock Toggle */
   KEY_LEFTCTRL,   /* 0x63  Control */
@@ -216,67 +262,68 @@ const uint8_t ktab[]  = {
 // Reset handling
 
 /*
- * A500 keyboard controller power on and reset (CTRL-A-A) sequence:
- *    (if reset, 1.75 second delay -- no F8 sent.)
- *   0x?? - (junk keycode with "release" flag)
- *   0xFF - Interrupt
- *   0xFD - Initiate Power Up
- *     (keycode press messages for keys pressed on powerup )
- *   0xFE - Terminate Stream
- *     (business as usual -- key up messages for presses above, probably)
- * 
- * A2000 keyboard controller power on sequence:
- *   0xFF - Interrupt
- *   0xFD - Initiate Power Up
- *     (keycode press messages for keys pressed on powerup )
- *   0xFE - Terminate Stream
- *     (business as usual -- key up messages for presses above, probably)
- *     
- * A2000 keyboard controller reset (CTRL-A-A) sequence:
- *   0xF8 - Reset Warning (twice in my experience) (immediately)
- *     (1.75 second delay)
- *   0x?? - (junk keycode with "release" flag)
- *   0xFD - Initiate Power Up
- *     (keycode press messages for keys pressed on powerup )
- *   0xFE - Terminate Stream
- *     (business as usual -- key up messages for presses above, probably)
- * 
- * NOTE: I do not have an A2000 keyboard controller to test with. The above
- *       was accomplished by disconnecting the reset circuit from an A500
- *       keyboard controller, by lifting the emitter pin on Q1 on the board.
- *
- * NOTE 2: A1000 and A3000 should have identical behavior to A2000 keyboard,
- *       although this is currently untested.
- */
+   A500 keyboard controller power on and reset (CTRL-A-A) sequence:
+      (if reset, 1.75 second delay -- no F8 sent.)
+     0x?? - (junk keycode with "release" flag)
+     0xFF - Interrupt
+     0xFD - Initiate Power Up
+       (keycode press messages for keys pressed on powerup )
+     0xFE - Terminate Stream
+       (business as usual -- key up messages for presses above, probably)
+
+   A2000 keyboard controller power on sequence:
+     0xFF - Interrupt
+     0xFD - Initiate Power Up
+       (keycode press messages for keys pressed on powerup )
+     0xFE - Terminate Stream
+       (business as usual -- key up messages for presses above, probably)
+
+   A2000 keyboard controller reset (CTRL-A-A) sequence:
+     0xF8 - Reset Warning (twice in my experience) (immediately)
+       (1.75 second delay)
+     0x?? - (junk keycode with "release" flag)
+     0xFD - Initiate Power Up
+       (keycode press messages for keys pressed on powerup )
+     0xFE - Terminate Stream
+       (business as usual -- key up messages for presses above, probably)
+
+   NOTE: I do not have an A2000 keyboard controller to test with. The above
+         was accomplished by disconnecting the reset circuit from an A500
+         keyboard controller, by lifting the emitter pin on Q1 on the board.
+
+   NOTE 2: A1000 and A3000 should have identical behavior to A2000 keyboard,
+         although this is currently untested.
+*/
 
 
 ///////////////////////////////////////////////////////////////
 // Handling special key presses
+// amiga keyboard sends these special keys meaining special things.
 
 void ProcessKey( uint8_t keydown, uint8_t key )
 {
-  switch( key & 0x7F ) {
-    
-    case( AMIGA_RESETWARNING ): // reset warning - ctrl-a-a JUST hit
+  switch ( key & 0x7F ) {
+
+    case ( AMIGA_RESETWARNING ): // reset warning - ctrl-a-a JUST hit
       // 1000/2000/3000 only
       Led_Flash(1);
       RED_ON();
       GREEN_OFF();
       break;
-      
-    case( AMIGA_INTERRUPT ): // interrupt (1.75s after ctrl-a-a pressed)
+
+    case ( AMIGA_INTERRUPT ): // interrupt (1.75s after ctrl-a-a pressed)
       // A500 only
       Led_Flash(1);
       RED_ON();
       GREEN_OFF();
       break;
 
-    case( AMIGA_POWERUPSTART ): // initiate powerup stream
+    case ( AMIGA_POWERUPSTART ): // initiate powerup stream
       RED_ON();
       GREEN_ON();
       break;
 
-    case( AMIGA_POWERREADY ):
+    case ( AMIGA_POWERREADY ):
       //Led_Pulse(); // putting this in here causes a "LAST CODE BAD" error.
       RED_ON();
       GREEN_OFF();
@@ -290,33 +337,49 @@ void ProcessKey( uint8_t keydown, uint8_t key )
 // arduino setup routine
 
 void setup() {
-  // Joystick 1 (Port D)
-  //DDRD = ~BITMASK_JOY1; // direction INPUT
-  //PORTD = BITMASK_JOY1; // activate PULLUP
-
-  // Joystick 2 (Port F)
-  //DDRF = ~BITMASK_JOY2; // direction INPUT
-  //PORTF = BITMASK_JOY2; // activate PULLUP~~~~
-
-  // Keyboard (Port B)
-  KYBPORTDIR = ~(BITMASK_A500CLK | BITMASK_A500SP | BITMASK_A500RES);  // direction INPUT
-  KYBPORT = (BITMASK_A500CLK | BITMASK_A500SP | BITMASK_A500RES);
-
-  Led_Setup();
-  KeymapSet( kKeymap_Load );
-
-#ifdef kOUT
+  //// Serial IO (only for debugging) ///////////
+#ifdef kSerialInsteadOfHID
   Serial.begin( 2000000 );
-  while( !Serial );
+  while ( !Serial );
   Serial.println( "US-KYB: OK." );
 #endif
 
-  //setupMouse();
+  //// Various status and settings ///////////
+  Led_Setup();
+  Settings_Setup();
+
+  //// Setup keyboard ///////////
+  KYBPORTDIR = ~(BITMASK_A500CLK | BITMASK_A500SP | BITMASK_A500RES);  // direction INPUT
+  KYBPORT = (BITMASK_A500CLK | BITMASK_A500SP | BITMASK_A500RES);
+  
+#ifdef kUseKeymaps
+  KeymapSet( kKeymap_Load );
+#endif
+  Keyboard.begin();
+
+  Mouse.begin();
+  Joystick.begin( true );
+  Joystick.setHatSwitch( 0, -1 ); // 180 = down, 90 = right
+  Joystick.setHatSwitch( 1, -1 );
+
+  Joystick.setXAxisRange( kJoystickMin, kJoystickMax );
+  Joystick.setYAxisRange( kJoystickMin, kJoystickMax );
+  Joystick.setXAxis( kJoystickMid );
+  Joystick.setYAxis( kJoystickMid );
+  
+  Joystick.setRxAxisRange( kJoystickMin, kJoystickMax );
+  Joystick.setRyAxisRange( kJoystickMin, kJoystickMax );
+  Joystick.setRxAxis( kJoystickMid );
+  Joystick.setRyAxis( kJoystickMid );
+
+
+  //// Ports A,B setup ///////////
+  Port_Setup();
 }
 
 
 ///////////////////////////////////////////////////////////////
-// arduino loop routine
+// Keymapping stuff
 
 struct KeymapXref {
   uint8_t ami;
@@ -330,8 +393,8 @@ struct KeymapXref xHelp[] {
   { AMIGA_F1,   KEY_F11, KEYM_NONE },
   { AMIGA_F2,   KEY_F12, KEYM_NONE },
   { AMIGA_F3,   KEY_F13, KEYM_NONE },
-  { AMIGA_F4,   KEY_F14, KEYM_NONE },
-  { AMIGA_F5,   KEY_F15, KEYM_NONE },
+  { AMIGA_F4,   KEY_F14, KEYM_NONE }, // Dim brightness
+  { AMIGA_F5,   KEY_F15, KEYM_NONE }, // brighter
   { AMIGA_F6,   KEY_F16, KEYM_NONE },
   { AMIGA_F7,   KEY_F17, KEYM_NONE },
   { AMIGA_F8,   KEY_F18, KEYM_NONE },
@@ -361,17 +424,18 @@ struct KeymapXref xHelp[] {
   { AMIGA_KPRIGHTPAREN, KEY_SYSRQ, KEYM_NONE }, // keypad ) - scroll lock
   { AMIGA_KPASTERISK,   KEY_SCROLLLOCK, KEYM_NONE }, // keypad * - print screen
 
-  { AMIGA_KPPLUS,       KEY_VOLUMEUP, KEYM_NONE }, // volume
-  { AMIGA_KPMINUS,      KEY_VOLUMEDOWN, KEYM_NONE }, // volume
-  { AMIGA_KPENTER,      KEY_MUTE, KEYM_NONE }, // volume
+  { AMIGA_KPPLUS,       KEY_VOLUMEUP, KEYM_NONE }, // volume up
+  { AMIGA_KPMINUS,      KEY_VOLUMEDOWN, KEYM_NONE }, // volume down
+  { AMIGA_KPENTER,      KEY_MUTE, KEYM_NONE }, // volume mute
 
   { 0xFF }
 };
 
+
 bool RemapPress( struct KeymapXref *x, uint8_t amikey )
 {
-  while( x->ami != 0xFF ) {
-    if( amikey == x->ami ) {
+  while ( x->ami != 0xFF ) {
+    if ( amikey == x->ami ) {
       keystroke( x->hid_k, x->hid_m );
       return true;
     }
@@ -380,41 +444,100 @@ bool RemapPress( struct KeymapXref *x, uint8_t amikey )
   return false;
 }
 
-void loop() {
-  //loopMouse();
-  
-  #ifdef NEVER
-  // Joystick 1
-  Joy = ~PIND & BITMASK_JOY1;
-  if (Joy != MemoJoy1) {
-    HID_SendReport(3, &Joy, 1);
-    MemoJoy1 = Joy;
+
+// i think we may need this so we don't re-enable interrupts when we need them still disabled
+// although probably not an issue... hm.
+int int_sema_count = 0;
+void Interrupts_Off( void )
+{
+  int_sema_count--;
+  if( int_sema_count > 0 ) { return; }
+  noInterrupts(); // cli();
+}
+
+void Interrupts_On( void )
+{
+  int_sema_count++;
+  interrupts(); // sei();
+}
+
+///////////////////////////////////////////////////////////////
+// arduino loop routine
+
+// check for usage mode timeout
+uint8_t UsageModeTimeoutCheck()
+{
+  if( usageModeTimeout == 0 ) return 1;
+
+  if( millis() > usageModeTimeout ) {
+    usageModeTimeout = 0;
+    usageMode = kUsageMode_Normal;
+    return 1; // mode changed!
   }
 
-  // Joystick 2
-  Joy = ~PINF & BITMASK_JOY2;
-  if (Joy != MemoJoy2) {
-    HID_SendReport(4, &Joy, 1);
-    MemoJoy2 = Joy;
-  }
-  #endif
+  return 0; // no change
+}
 
-  // Keyboard
+
+// set a new usage mode
+uint8_t UsageMode( uint8_t newMode )
+{
+  usageModeTimeout = millis() + 50000;
+  usageMode = newMode;
+  return 0;
+}
+
+
+// loop special functions
+void loop_special()
+{
+  if( UsageModeTimeoutCheck() ) return; // nothing to do! timed out! bail!
+
+  // nope. it's a special f
+  if( usageMode == kUsageMode_ExploreA ) {
+  } else if ( usageMode == kUsageMode_ExploreB ) {
+    
+  }
+}
+
+void ExploreA()
+{
+  char buf[32];
+  sprintf( buf, "x %ld %ld Ax%02x Bx02", millis(), port_tick, ports[0].raw, ports[1].raw );
+  Serial.println( buf );
+  delay( 100 );
+}
+
+// main loop poll
+void loop()
+{
+  // do any foreground stuff that needs to happen for port->controller stuff
+  Port_Poll();
+
+  TypeStuff_Poll();
+
+  //ExploreA();
+
+
+#ifdef kUseHardResetLine
+  //// Keyboard poll ///////////
   if (((KYBPINS & BITMASK_A500RES) == 0) && state != WAIT_RES) { // Reset
-    interrupts();
+    Interrupts_On();
     keystroke( KEY_DELETE, (KEYM_LEFTCTRL | KEYM_LEFTALT) );       // CTRL+ALT+DEL
-    help_pressed = 0;
+    help_ged = 0;
+    del_pressed = 0;
     state = WAIT_RES;
 
-    #ifdef kOUT
+#ifdef kSerialInsteadOfHID
     Serial.println( "RESET.");
-    #endif
+#endif
 
     clearKeyboard();
-  }
+  } else 
+#endif
 
-  else if (state == WAIT_RES) { // Waiting for reset end
-#ifdef kOUT
+  if (state == WAIT_RES) { // Waiting for reset end
+#ifdef kSerialInsteadOfHID
     Serial.print( "Reset Line Pulled" );
 #endif
     if ((KYBPINS & BITMASK_A500RES) != 0) state = SYNCH_HI;
@@ -453,24 +576,58 @@ void loop() {
       } else {  // read last bit (key down)
 
         keydown = ((KYBPINS & BITMASK_A500SP) != 0); // true if key down
-        interrupts();
+        Interrupts_On();
         ProcessKey( keydown, key );
-        
-#ifdef kOUT
-        Serial.print( (keydown)? "  Press ": "Release " );
-        if( key < 0x10 ) Serial.print( '0' );
+
+#ifdef kSerialInsteadOfHID
+//        Serial.print( (keydown) ? "  Press " : "Release " );
+        Serial.print( (keydown) ? " Prs " : " Rel " );
+        if ( key < 0x10 ) Serial.print( '0' );
         Serial.println( key, HEX );
+        if( keydown ) {
+          Serial.print( key, HEX );
+        } else {
+          Serial.println( key, HEX );
+        }
 #endif
         state = HANDSHAKE;
-
-
         if (key == AMIGA_HELP) {
           help_pressed = keydown; // "Help" key: special function on/GREEN_OFF
 
-          if( keydown ){
-            RED_DIM();
-          } else {
-            RED_ON_SLOW(); // need to use slow, to switch it out of PWM/Analog mode
+          if ( keydown ) {
+            RED_ON();
+            GREEN_ON();
+          }
+          else {
+            RED_OFF();
+            GREEN_OFF();
+          }
+          /*
+                    if ( keydown ) {
+                      RED_DIM();
+                    } else {
+                      RED_ON_SLOW(); // need to use slow, to switch it out of PWM/Analog mode
+                    }
+          */
+        } else if (key == AMIGA_DELETE ) {
+          del_pressed = keydown; // "DEL" key: when used with HELP, it's for internal use
+
+          if ( keydown ) {
+            GREEN_OFF();
+          }
+          /*
+                    if ( keydown ) {
+                      GREEN_DIM();
+                    } else {
+                      GREEN_ON_SLOW(); // need to use slow, to switch it out of PWM/Analog mode
+                    }
+          */
+          if ( !help_pressed ) {
+            if ( keydown ) {
+              keypress( key );
+            } else {
+              keyrelease( key );
+            }
           }
 
         } else if (key == AMIGA_CAPSLOCK) {
@@ -479,30 +636,54 @@ void loop() {
         } else {
           // temporary hack to simulate the blank keys i don't have
           /*
-          if( help_pressed ) {
+            if( help_pressed ) {
             if( key == AMIGA_Z ) { key = AMIGA_LCUTOUT; }
             if( key == AMIGA_APOSTROPHE ) { key = AMIGA_RCUTOUT; }
-          }
+            }
           */
 
           if (keydown) {
             // keydown message received
-            if (help_pressed) {
-
-
-              if( RemapPress( xHelp, key )) {
+            if ( del_pressed && help_pressed ) {
+              if ( key == AMIGA_V )
+                TypeString( "# " kLL530_Version "\n" ); 
+              else if ( key == AMIGA_T )
+                TypeStuffToggle();
+              else if ( key == AMIGA_RETURN || key == AMIGA_KPENTER )
+                TypeString( "\n" );
+              else Port_HandleKeyPress( key );
+            }
+            else if (help_pressed) {
+              if ( RemapPress( xHelp, key )) {
                 // we used it.
-              }
-              // commands to change the keymap
-              else if ( key == AMIGA_A )     KeymapSet( kKeymap_US ); // base
-              else if ( key == AMIGA_S )     KeymapSet( kKeymap_SE );
-              else if ( key == AMIGA_D )     KeymapSet( kKeymap_DE );
-              else if ( key == AMIGA_F )     KeymapSet( kKeymap_FR );
-              else if ( key == AMIGA_G )     KeymapSet( kKeymap_GB );
-              else if ( key == AMIGA_H )     KeymapSet( kKeymap_FI );
+              } 
 
-              else if ( key == AMIGA_V )     TypeString( "# LL530_Keyboard v0.85\n" );
-              else if ( key == AMIGA_T )     TypeStuffToggle();
+              // commands to change the keymap
+#ifdef kUseKeymaps
+              /*
+                else if ( key == AMIGA_A )     KeymapSet( kKeymap_US ); // base
+                else if ( key == AMIGA_S )     KeymapSet( kKeymap_SE );
+                else if ( key == AMIGA_D )     KeymapSet( kKeymap_DE );
+                else if ( key == AMIGA_F )     KeymapSet( kKeymap_FR );
+                else if ( key == AMIGA_G )     KeymapSet( kKeymap_GB );
+                else if ( key == AMIGA_H )     KeymapSet( kKeymap_FI );
+              */
+#endif
+              else {
+                if( key == AMIGA_A ) {
+                  UsageMode( kUsageMode_ExploreA );
+                  typeStuff = 1;
+                  TypeStuff( "Ax." );
+
+                } else if( key == AMIGA_B ) {
+                  UsageMode( kUsageMode_ExploreB );
+                  typeStuff = 1;
+                  TypeStuff( "Bx." );
+
+                } else {
+                  usageMode = kUsageMode_Normal;
+                }
+              }
             }
             else {
               if (key < 0x68) {
@@ -523,7 +704,7 @@ void loop() {
 
   else if (state == WAIT_LO) { // waiting for the next bit
     if ((KYBPINS & BITMASK_A500CLK) == 0) {
-      noInterrupts();
+      Interrupts_Off();
       state = READ;
     }
   }
@@ -535,7 +716,7 @@ void loop() {
 
 void OutPressRelease( uint8_t pr, uint8_t k, uint8_t m )
 {
-  if( pr ) Serial.print( "Press " );
+  if ( pr ) Serial.print( "Press " );
   else     Serial.print( "  Rel " );
 
   Serial.print( k, HEX );
@@ -550,8 +731,6 @@ void clearKeyboard() {
   }
   Keyboard.releaseAll();
 }
-
-int mmm = 0;
 
 // keypress and keyrelease will look through the 6 slots, and find an unused one
 void keypress(uint8_t k) {
@@ -569,7 +748,7 @@ void keypress(uint8_t k) {
     }
   }
 
-//  OutPressRelease( 1, _keyReport.keys[0], _keyReport.modifiers );
+  //  OutPressRelease( 1, _keyReport.keys[0], _keyReport.modifiers );
 #ifndef kDisableHIDOutput
   HID_SendReport(2, &_keyReport, 8);
 #endif
@@ -583,13 +762,13 @@ void keyrelease( uint8_t k )
   if (k >= AMIGA_FIRST_META) {
     _keyReport.modifiers &= ~ktab[ k ];  // modifier
   } else {
-    for (uint8_t i = 0; i < 6; i++) { 
+    for (uint8_t i = 0; i < 6; i++) {
       if (_keyReport.keys[i] == ktab[ k ]) {
         _keyReport.keys[i] = 0;
       }
     }
   }
-//  OutPressRelease( 0, _keyReport.keys[0], _keyReport.modifiers );
+  //  OutPressRelease( 0, _keyReport.keys[0], _keyReport.modifiers );
 #ifndef kDisableHIDOutput
   HID_SendReport(2, &_keyReport, 8);
 #endif
@@ -598,11 +777,11 @@ void keyrelease( uint8_t k )
 
 void keystroke(uint8_t k, uint8_t m)
 {
-//  OutPressRelease( 1, k, m );
+  //  OutPressRelease( 1, k, m );
 
   unsigned short memomodifiers = _keyReport.modifiers; // save last modifier state
   for (uint8_t i = 0; i < 6; i++) {
-    if (_keyReport.keys[i] == 0) { 
+    if (_keyReport.keys[i] == 0) {
 
       _keyReport.keys[i] = k;
       _keyReport.modifiers = m;
@@ -623,6 +802,7 @@ void keystroke(uint8_t k, uint8_t m)
 
 ///////////////////////////////////////////////////////////////
 // ascii string to hid keypresses routine
+
 
 typedef struct TypeXref {
   uint8_t ascii;
@@ -649,41 +829,71 @@ const struct TypeXref typeLUT[] =
   { 0xff, 0xff, 0xff }
 };
 
-void TypeChar( uint8_t ch )
+void TypeChar_actual( uint8_t ch )
 {
+#ifdef kSerialInsteadOfHID
+  Serial.write( ch );
+  return;
+#endif
   uint8_t k = 0xFF;
   uint8_t m = 0x00;
   int x = 0;
 
-  while( typeLUT[x].ascii != 0xFF ) {
-    if( typeLUT[x].ascii == ch ) {
+  while ( typeLUT[x].ascii != 0xFF ) {
+    if ( typeLUT[x].ascii == ch ) {
       k = typeLUT[x].hid_k;
       m = typeLUT[x].hid_m;
     }
     x++;
   }
-  if( k == 0xff ) {
-    if( ch >= '1' && ch <= '9' ) {
+  if ( k == 0xff ) {
+    if ( ch >= '1' && ch <= '9' ) {
       k = KEY_1 + ( ch - '1' );
     }
-    if( ch >= 'a' && ch <= 'z' ) {
+    if ( ch >= 'a' && ch <= 'z' ) {
       k = KEY_A + ( ch - 'a' );
     }
-    if( ch >= 'A' && ch <= 'Z' ) {
+    if ( ch >= 'A' && ch <= 'Z' ) {
       k = KEY_A + ( ch - 'A' );
       m = KEYM_LEFTSHIFT;
     }
   }
   // Hello
 
-  if( k!= 0xff ) {
+  if ( k != 0xff ) {
     keystroke( k, m );
   }
 }
 
+#define kTBufSz (128)
+char typeBuffer[kTBufSz];
+int typePos = 0;
+
+
+void TypeStuff_Poll()
+{
+  if( typePos <= 0 ) return;
+
+  TypeChar_actual( typeBuffer[0] );
+  for( int i=0 ; i < typePos ; i++ ) {
+    typeBuffer[ i ] = typeBuffer[ i+1 ];
+  }
+  typePos--;
+}
+
+void TypeChar( char ch )
+{
+  if( typePos > kTBufSz ) return;
+
+  typeBuffer[ typePos ] = ch;
+  typePos++;
+}
+
+
+
 void TypeString( char * str )
 {
-  while( *str != NULL )
+  while ( *str != NULL )
   {
     TypeChar( *str );
     str++;
@@ -691,19 +901,98 @@ void TypeString( char * str )
 }
 
 
-uint8_t typeStuff = 0;
+
 void TypeStuffToggle()
 {
-  if( typeStuff == 0 ) { typeStuff = 1; }
-  else{ typeStuff = 0; }
+  if ( typeStuff == 0 ) {
+    typeStuff = 1;
+  }
+  else {
+    typeStuff = 0;
+  }
 
-  if( typeStuff ) {
-    TypeStuff( "Typeout Enabled." );
+  if ( typeStuff ) {
+    TypeStuff( "# Typeout Enabled.\n" );
   }
 }
 
 void TypeStuff( char * str )
 {
-  if( !typeStuff ) return;
+#ifdef kSerialInsteadOfHID
+  Serial.print( str );
+#else
+  if ( !typeStuff ) return;
   TypeString( str );
+#endif
 }
+
+
+
+struct JoyKeyMap {
+  unsigned char keycode0;
+  unsigned char keycode1;
+};
+
+#define kJKM_Style_StellaJoy (0)
+#define kJKM_Style_LibRetro  (1)
+#define kJKM_Style_Vi        (2)
+#define kJKM_Style_WASD      (3)
+#define kJKM_Style_VPad      (4)
+
+#define kJKM_Up     (0)
+#define kJKM_Down   (1)
+#define kJKM_Left   (2)
+#define kJKM_Right  (3)
+#define kJKM_Fire1  (4)
+#define kJKM_Fire2  (5)
+#define kJKM_Fire3  (6)
+
+#define kJKM_UnitA  (0)
+#define kJKM_UnitB  (1)
+
+struct JoyKeyMap keymapLookups[6][7] = {
+  { // 0: stella Joystick on keyboard
+    { KEY_UP_ARROW,     'y' },  // up
+    { KEY_DOWN_ARROW,   'h' },  // down
+    { KEY_LEFT_ARROW,   'g' },  // left
+    { KEY_RIGHT_ARROW,  'j' },  // right 
+    { ' ',              'f' },  // fire 1
+    { '5',              '7' },  // fire 2 
+    { '5',              '7' },  // fire 3 ?
+  }, 
+  { // 1: LibRetro
+    { KEY_UP_ARROW,     'r' },
+    { KEY_DOWN_ARROW,   'f' },
+    { KEY_LEFT_ARROW,   'd' },
+    { KEY_RIGHT_ARROW,  'g' },
+    { KEY_LEFT_CTRL,    'a' },
+    { KEY_LEFT_ALT,     's' },
+    { ' ',              'q' },
+  },
+  { // 2: vi
+    { 'k',      'k' },
+    { 'j',      'j' },
+    { 'h',      'h' },
+    { 'l',      'l' },
+    { KEY_ESC,  KEY_ESC },
+    { 'i',      'i' },
+    { '/',      '/' },
+  },
+  { // 3: WASD
+    { 'w',            'i' },
+    { 's',            'k' },
+    { 'a',            'j' },
+    { 'd',            'l' },
+    { ' ',            'u' },
+    { KEY_LEFT_SHIFT, KEY_RIGHT_SHIFT },
+    { KEY_LEFT_ALT,   KEY_RIGHT_ALT },
+  },
+  { // 4: Video Pad/Keyboard
+    { '1', '8' }, { '2', '9' }, { '3', '0' },
+    { 'q', 'i' }, { 'w', 'o' }, { 'e', 'p' },
+  }, { 
+    // 5: second half of video pad/keyboard
+    { 'a', 'k' }, { 's', 'l' }, { 'd', ';' },
+    { 'z', ',' }, { 'x', '.' }, { 'c', '/' },
+  }
+};
