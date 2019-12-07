@@ -1,4 +1,3 @@
-
 # include this file in the top of your project directory's makefile
 #  include ../Arduino_Config.mk
 #
@@ -7,18 +6,28 @@
 #
 # Version History
 #
+#	0.21 - SL - 2019-12-05 - added 'test' for launching serial term
 #	0.20 - SL - 2019-12-02 - build or deploy if serial port is available
 #	0.01 - SL - 2019-12-01 - initial version
+#
+################################################################################
 
+# figure out our directory name
 PROJDIR ?= ${shell basename ${shell pwd}}
 
 # expexted values.  If they're not set, these are reasonable start points
 SERPORT ?= /dev/Serial0
 ACLI ?= arduino-cli
 
+# command to use to wait for the serial port to return
+# parameter 1 should be the serial port.
+FILEWAIT ?= ${MKFILESDIR}/filewait.sh
+
 CORE ?= arduino:avr
 FQBN ?= arduino:avr:leonardo
 
+# serial comms for testing
+SERCMD  ?= screen ${SERPORT} 115200
 
 BUILDFNBASE := ${PROJDIR}.${subst :,.,${FQBN}}
 
@@ -27,8 +36,8 @@ FN_HEX := ${BUILDFNBASE}.hex
 
 GENFILES = ${FN_ELF} ${FN_HEX}
 
-###########
-#
+################################################################################
+
 
 # if the serial port is available, change our "all" target
 ifdef SERPORT
@@ -51,18 +60,39 @@ build:
 	@echo "+ Building project files..."
 	${ACLI} compile --fqbn ${FQBN}
 
-ifdef SERPORT
 deploy:
+ifdef SERPORT
 	@echo
 	@echo "+ Deploying to ${SERPORT}..."
 	${ACLI} upload -p ${SERPORT} --fqbn ${FQBN} 
 else
-deploy:
 	@echo "! Cannot deploy: SERPORT (serial port) is not defined."
 endif
 
+ifdef SERPORT
+test: deploy delay
+	@echo "+ Starting up serial communications..."
+	@${SERCMD}
 
-##########
+delay:
+	@echo "+ Waiting for ${SERPORT} to come back..."
+	${shell ${WAITCMD} "${SERPORT}" }
+
+delay-fixed-timeout:
+	@echo "+ Waiting for 6 seconds..."
+	@for number in 6 5 4 3 2 1  ; do \
+    echo "Waiting...  $$number " ; \
+    sleep 1 ; \
+    done
+
+else
+test:
+	@echo "! Serial port is unavailable!"
+endif
+
+
+
+################################################################################
 # One-time setup things.
 
 cli_install_cli:
@@ -83,7 +113,29 @@ cli_install_core:
 cli_firstrun: cli_install_cli cli_update cli_install_core
 
 
-##########
+################################################################################
+
+show:
+	@echo ""
+	@echo "[Executables]"
+	@echo "         ACLI = ${ACLI}"
+	@echo "       SERCMD = ${SERCMD}"
+	@echo "      WAITCMD = ${WAITCMD}"
+	@echo ""
+	@echo "[Device]"
+	@echo "         CORE = ${CORE}"
+	@echo "         FQBN = ${FQBN}"
+	@echo "      SERPORT = ${SERPORT}"
+	@echo ""
+	@echo "[Project]"
+	@echo "      PROJDIR = ${PROJDIR}"
+	@echo "  BUILDFNBASE = ${BUILDFNBASE}"
+	@echo "       FN_ELF = ${FN_ELF}"
+	@echo "       FN_HEX = ${FN_HEX}"
+	@echo "      MAKEDIR = ${MKFILESDIR}"
+
+
+################################################################################
 # These are just for reference...
 
 

@@ -31,9 +31,11 @@ void Led_Setup()
   pinMode( kLED_Red, OUTPUT );
   pinMode( kLED_Green, OUTPUT );
 
-  Led_Pulse();
+  //Led_Pulse();
   Led_Flash( 1 );
   GREEN_OFF();
+#ifdef kDebugOnLEDs
   RED_ON();
+#endif /* kDebugOnLEDs */
 }
 

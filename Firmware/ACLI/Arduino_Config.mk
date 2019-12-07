@@ -3,11 +3,13 @@
 
 MKFILESDIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+SEARCHWORD := Leonardo
+
 # your serial port.
 # 	make cli_boardlist
 #	make cli_boardlist | grep Leonardo
 #   something like: /dev/cu.usbmodemHIDFGHIDID1
-SERPORT := ${shell python ${MKFILESDIR}/ach.py Leonardo port}
+SERPORT := ${shell python ${MKFILESDIR}/ach.py ${SEARCHWORD} port}
 
 
 
@@ -25,4 +27,9 @@ CORE := arduino:avr
 #	make cli_listall
 #	make cli_listall | grep Leonardo
 # 	something like "arduino:avr:leonardo"
-FQBN := ${shell python ${MKFILESDIR}/ach.py Leonardo fqvn}
+FQBN := ${shell python ${MKFILESDIR}/ach.py ${SEARCHWORD} fqvn}
+
+
+# command to use to wait for the serial port to return
+# parameter 1 should be the serial port.
+WAITCMD := ${MKFILESDIR}/filewait.sh

@@ -28,6 +28,7 @@
 
 #define kPortDevice_Joy2600   (10)  // Atari VCS 2600 joystick connected (1-3 buttons)
 #define kPortDevice_Joy7800   (11)  // Atari 7800 joystick connected (2 button)
+
 #define kPortDevice_JoyCD32   (12)  // Amiga CD-32 joystick connected (w/shift register)
 
 #define kPortDevice_AmiMouse  (20)  // Amiga Mouse

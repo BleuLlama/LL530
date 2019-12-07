@@ -16,30 +16,15 @@
 #include <Joystick.h>
 #include <avr/pgmspace.h>   // PROGMEM support for our tables
 #include <EEPROM.h>         // for saving the keymap setting
-#include "Platform.h"
+#include "Config.h"         //
+#include "Platform.h"       // settings for the GPIO settings
 #include "amiga_keys.h"     // header for AMIGA key codes
 #include "usb_hid_keys.h"   // header for HID key codes
 #include "Leds.h"           // for led settings
 #include "Ports.h"          // for mouse/joystick ports
 #include "Settings.h"       // Settings
 
-
-
-// Use LL530 hardware
-#define HARDWARE_LL530
-
-// is the keyboard reset line connected?
-#undef kUseHardResetLine
-
-// switches for debugging/dev, to send serial characters instead of HID keypresses
-#undef kSerialInsteadOfHID
-
-#ifdef kSerialInsteadOfHID
-#define kDisableHIDOutput (1)
-#endif
-
-#undef kUseKeymaps    // we don't need to keep track of keymaps. seriously.
-
+// Build configuration is in Config.h
 
 // Usage modes for general system usage
 #define kUsageMode_Normal   (0x00)  /* normal operation */
@@ -306,27 +291,36 @@ void ProcessKey( uint8_t keydown, uint8_t key )
 
     case ( AMIGA_RESETWARNING ): // reset warning - ctrl-a-a JUST hit
       // 1000/2000/3000 only
+#ifdef kDebugOnLEDs
       Led_Flash(1);
       RED_ON();
       GREEN_OFF();
+#endif /* kDebugOnLEDs */
       break;
 
     case ( AMIGA_INTERRUPT ): // interrupt (1.75s after ctrl-a-a pressed)
       // A500 only
+#ifdef kDebugOnLEDs
       Led_Flash(1);
       RED_ON();
       GREEN_OFF();
+#endif /* kDebugOnLEDs */
       break;
 
     case ( AMIGA_POWERUPSTART ): // initiate powerup stream
+#ifdef kDebugOnLEDs
       RED_ON();
       GREEN_ON();
+#endif /* kDebugOnLEDs */
       break;
 
     case ( AMIGA_POWERREADY ):
       //Led_Pulse(); // putting this in here causes a "LAST CODE BAD" error.
+
+#ifdef kDebugOnLEDs
       RED_ON();
       GREEN_OFF();
+#endif /* kDebugOnLEDs */
       clearKeyboard();
       break;
   }
@@ -358,9 +352,10 @@ void setup() {
   Keyboard.begin();
 
   Mouse.begin();
+
   Joystick.begin( true );
-  Joystick.setHatSwitch( 0, -1 ); // 180 = down, 90 = right
-  Joystick.setHatSwitch( 1, -1 );
+  Joystick.setHatSwitch( 0, 90 ); // 180 = down, 90 = right
+  Joystick.setHatSwitch( 1, 180 );
 
   Joystick.setXAxisRange( kJoystickMin, kJoystickMax );
   Joystick.setYAxisRange( kJoystickMin, kJoystickMax );
@@ -594,6 +589,8 @@ void loop()
         if (key == AMIGA_HELP) {
           help_pressed = keydown; // "Help" key: special function on/GREEN_OFF
 
+
+#ifdef kDebugOnLEDs
           if ( keydown ) {
             RED_ON();
             GREEN_ON();
@@ -602,6 +599,7 @@ void loop()
             RED_OFF();
             GREEN_OFF();
           }
+#endif /* kDebugOnLEDs */
           /*
                     if ( keydown ) {
                       RED_DIM();
@@ -612,9 +610,11 @@ void loop()
         } else if (key == AMIGA_DELETE ) {
           del_pressed = keydown; // "DEL" key: when used with HELP, it's for internal use
 
+#ifdef kDebugOnLEDs
           if ( keydown ) {
             GREEN_OFF();
           }
+#endif /* kDebugOnLEDs */
           /*
                     if ( keydown ) {
                       GREEN_DIM();
@@ -734,7 +734,9 @@ void clearKeyboard() {
 
 // keypress and keyrelease will look through the 6 slots, and find an unused one
 void keypress(uint8_t k) {
+#ifdef kDebugOnLEDs
   GREEN_ON();
+#endif /* kDebugOnLEDs */
 
   if (k >= AMIGA_FIRST_META) {
     _keyReport.modifiers |= ktab[key];  // modifier
@@ -757,7 +759,9 @@ void keypress(uint8_t k) {
 
 void keyrelease( uint8_t k )
 {
+#ifdef kDebugOnLEDs
   GREEN_OFF();
+#endif /* kDebugOnLEDs */
 
   if (k >= AMIGA_FIRST_META) {
     _keyReport.modifiers &= ~ktab[ k ];  // modifier

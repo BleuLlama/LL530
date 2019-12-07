@@ -1,5 +1,8 @@
 /* 
     This file will specify ports and such for different platforms.
+
+    Currently, this only supports Arduino Leonardo, but this could be different
+    in the future
 */
 
 #ifndef __PLATFORM_H__
