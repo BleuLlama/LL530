@@ -442,8 +442,6 @@ void Port_SendMouse( int portAB )
     if( ports[ portAB ].tohigh & kPortB1 ) Mouse.press( MOUSE_LEFT );
     if( ports[ portAB ].tohigh & kPortB2 ) Mouse.press( MOUSE_RIGHT );
     if( ports[ portAB ].tohigh & kPortB3 ) Mouse.press( MOUSE_MIDDLE );
-
-    Port_ValueToButtons( ports[ portAB ].raw >> 4);
   }
   ports[ portAB ].tohigh = 0;
 
