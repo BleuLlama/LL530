@@ -2,13 +2,14 @@
  *  
  *  For LL530 v1 hardware
  *  
+ *  v0.89 2019-12-07 joy+mouse+kyb working, no configurability
  *  v0.87 2019-07-08 joystick/mouse support starting
  *  v0.86 2019-02-17 Help-A/B for explore mode
  *  v0.85 2018-12-20 Keyboard working, help key remapping done
  */
 
 
-#define kLL530_Version "LL530_Keyboard v0.87b"
+#define kLL530_Version "LL530_Keyboard v0.89"
 
 
 #include <Keyboard.h>       // has all of the HID KeyReport stuff we need

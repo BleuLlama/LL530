@@ -423,6 +423,11 @@ void Port_SendJoyP0P1( int portAB, int joy01 )
 //
 void Port_SendMouse( int portAB )
 {
+    /*
+    might be nice: 
+        - hold down middle button (B3), and Y becomes scroll wheel, X is ignored.
+        - 
+    */
   // send mouse movement deltas
   if( ports[ portAB ].deltaX || ports[ portAB ].deltaY ) {
       Mouse.move(   ports[ portAB ].deltaX*kMouseMultiplier, 
@@ -437,6 +442,8 @@ void Port_SendMouse( int portAB )
     if( ports[ portAB ].tohigh & kPortB1 ) Mouse.press( MOUSE_LEFT );
     if( ports[ portAB ].tohigh & kPortB2 ) Mouse.press( MOUSE_RIGHT );
     if( ports[ portAB ].tohigh & kPortB3 ) Mouse.press( MOUSE_MIDDLE );
+
+    Port_ValueToButtons( ports[ portAB ].raw >> 4);
   }
   ports[ portAB ].tohigh = 0;
 
@@ -461,16 +468,22 @@ void Port_Poll()
   }
   nextPoll = millis() + kPollDelay;
 
-  //Port_ReadB_DigitalJoy( kPortDevice_Joy2600 );
-  //Port_SendJoyP0P1( kPortB, kJoyP1 );
+  // port B is a 2600 joystick (up to 3 buttons)
+  Port_ReadB_DigitalJoy( kPortDevice_Joy2600 );
 
+  // sends it out as P1 HID Joystick
+  Port_SendJoyP0P1( kPortB, kJoyP1 );
+
+  // send mouse stuff from port A
   Port_SendMouse( kPortA );
 
-
+  // send out the debug buttons (17-20)
+  /*
   if( dPollCounter != dPollCounter_Prev ) {
     Port_ValueToButtons( dPollCounter );
     dPollCounter_Prev = dPollCounter;
   }
+  */
 }
 
 
@@ -483,9 +496,7 @@ ISR( TIMER1_COMPA_vect )
   port_tick++;
   
   Port_ReadA_Gray( kPortDevice_AmiMouse );
-  Port_ReadA_Gray( kPortDevice_STMouse ); //kPortDevice_AmiMouse );
-
-  //Port_B_DigitalJoy_HIValueToButtons( kPortDevice_Joy2600 );
+  //Port_ReadA_Gray( kPortDevice_STMouse ); 
 
 if( 0 )
 {
