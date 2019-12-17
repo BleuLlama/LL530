@@ -62,6 +62,7 @@
 struct PORTINFO {
   unsigned char mode;
   unsigned char state;
+  unsigned char device;
   
   // general reading, digital change sense
   unsigned char raw;
@@ -74,6 +75,11 @@ struct PORTINFO {
   char grayY;
   char prevGrayX;
   char prevGrayY;
+
+  int analogX;
+  int analogY;
+  int minX, maxX;
+  int minY, maxY;
 
   // mouse deltas
   char deltaX;

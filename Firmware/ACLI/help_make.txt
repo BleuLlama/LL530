@@ -1,0 +1,41 @@
+
+Help:
+
+    show          show currently set makefile variables
+    help          this help screen
+
+
+build targets:
+
+    all           build and deploy (if available)
+    clean         remove hex files and any generated files (GENFILES)
+    build         compile the arduino project
+    deploy        upload the built hex file to the device
+    connect       start up terminal serial to the device
+
+
+misc:
+
+    amiready      checks to see if required commands are available
+    sercheck      fails out if the device isn't connected or found
+    test          deploy and connect the serial terminal
+    delay         wait for the serial port to come back
+
+
+arduino-cli first-run setup stuff:
+
+    cli_install_cli   shows the command needed to install the arduino-cli
+    cli_update_cores  update the cores indexing
+    cli_install_core  install the core specified for the project
+    cli_firstrun      runs the above three for the first time you start
+
+
+arduino-cli reference:
+
+    cli_version     get the version from arduino-cli
+    cli_update      update the arduino-cli application
+    cli_boardlist   list connected serial ports and possible devices
+    cli_corelist    list installed cores
+    cli_listall     list all available boards and FQBNs
+                    (Fully Qualified Board Names)
+

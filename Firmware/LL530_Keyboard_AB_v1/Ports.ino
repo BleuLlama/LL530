@@ -13,26 +13,27 @@
 
 */
 
+
 unsigned long port_tick = 0l;
 
 char portPinSets[2][9] =
 {
   { // PORT A
     /* 1UP  2DN  3LT  4RT  5B3  */
-    5,   4,   3,   2,   6,
+        5,   4,   3,   2,   6,
 
     /*    6B1            9B2    */
-    7,              8,
+           7,              8,
 
     /* Analog versions of pin 5, pin 9 */
     /* D6 */ A7, /* D8 */ A8
   },
   { // PORT B
     /* 1UP  2DN  3LT  4RT  5B3  */
-    16,  15,  18,  19,  21,
+        16,  15,  18,  19,  21,
 
     /*    6B1            9B2    */
-    14,            20,
+           14,            20,
 
     /* Analog versions of pin 5, pin 9 */
     /* D21 */ A3, /* D20 */ A2
@@ -44,6 +45,8 @@ void Port_PinModeJoystick( unsigned char port )
   for ( int i = 0 ; i < 7 ; i++ ) {
     pinMode( portPinSets[port][i], INPUT_PULLUP );
   }
+  pinMode( portPinSets[port][7], INPUT );
+  pinMode( portPinSets[port][8], INPUT );
 }
 
 void Port_PinModeJoystick7800( unsigned char port )
@@ -60,8 +63,10 @@ struct PORTINFO ports[2];
 
 void Port_ClearInfo( unsigned char portNo )
 {
-  ports[ portNo ].mode = kPortMode_ReadPort;
+  //ports[ portNo ].mode = kPortMode_ReadPort;
   ports[ portNo ].state = 0;
+  ports[ portNo ].mode = 0;
+
   ports[ portNo ].raw = 0;
   ports[ portNo ].prev = 0;
   ports[ portNo ].tohigh = 0;
@@ -74,42 +79,72 @@ void Port_ClearInfo( unsigned char portNo )
 
   ports[ portNo ].deltaX = 0;
   ports[ portNo ].deltaY = 0;
+
+  ports[ portNo ].analogX = 0;
+  ports[ portNo ].analogY = 0;
+  ports[ portNo ].minX = 32760;
+  ports[ portNo ].maxX = 0;
+  ports[ portNo ].minY = 32760;
+  ports[ portNo ].maxY = 0;
 }
 
 
-//// Foreground routines
+/*
+#define OUTPUTT( X ) \
+    TypeStuff( X )
+    */
 
+#define OUTPUTT( X ) \
+    Serial.print( X ); Serial.write( '\r' );
+
+//// Foreground routines
 void Port_TypeInfo( unsigned char portNo )
 {
   char buf[16];
 
-#ifndef kSerialInsteadOfHID
-  if ( !typeStuff ) return;
-#endif
+  //if ( !typeStuff ) return;
   
-  if( portNo == kPortA ) TypeStuff( "Port A:\n" ); 
-  else if( portNo == kPortB ) TypeStuff( "Port B:\n" ); 
-  else {
-    TypeStuff( "# Port: ??? \n" ); 
+  if( portNo == kPortA ) {
+    OUTPUTT( "\n\rPort A:" ); 
+
+  } else if( portNo == kPortB ) {
+    OUTPUTT( "\n\rPort B:" ); 
+
+  } else {
+    OUTPUTT( "# Port: ??? \n" ); 
     return;
   }
-
-  TypeStuff( "#  Mode: " );
-  TypeStuff( (ports[ portNo ].mode == kPortMode_None) ? "None" :
+  /*
+  OUTPUTT( "#  Mode: " );
+  OUTPUTT( (ports[ portNo ].mode == kPortMode_None) ? "None" :
              (ports[ portNo ].mode == kPortMode_TestLED) ? "Test LED" :
              (ports[ portNo ].mode == kPortMode_FlashLED) ? "Flash LED" :
              (ports[ portNo ].mode == kPortMode_ReadPort) ? "Read Port" :
              "Unknown"
            );
+  */
   sprintf( buf, "\n#  Raw: %d\n", ports[ portNo ].raw );
-  TypeStuff( buf );
+  OUTPUTT( buf );
   sprintf( buf, "#  State: %d\n", ports[ portNo ].state );
-  TypeStuff( buf );
+  OUTPUTT( buf );
   sprintf( buf, "#  Ticks: %ld\n", port_tick );
-  TypeStuff( buf );
+  OUTPUTT( buf );
+}
+
+void Port_NewDevicemode( 
+        unsigned char portNo, 
+        unsigned char new_device,
+        unsigned char new_mode )
+{
+  if ( portNo != kPortA && portNo != kPortB ) return;
+
+  ports[ portNo ].device = new_device;
+  ports[ portNo ].mode = new_mode;
+  ports[ portNo ].state = 0;
 }
 
 
+#ifdef NEVER
 void Port_SwitchMode( unsigned char portNo, unsigned char newMode )
 {
   unsigned char fromMode;
@@ -164,11 +199,13 @@ void Port_SwitchMode( unsigned char portNo, unsigned char newMode )
     Setting_Set( kSetting_PortBState, 0 );
   }
 }
+#endif
 
 // Port_HandleKeyPress
 // This is called before other key press handlers, but also only if HELP+,DEL are pressed
 bool Port_HandleKeyPress( uint8_t amikey )
 {
+    /*
   switch ( key ) {
     case ( AMIGA_0 ): Port_SwitchMode( kPortA, kPortMode_None ); return true;
     case ( AMIGA_1 ): Port_SwitchMode( kPortA, kPortMode_FlashLED ); return true;
@@ -183,11 +220,11 @@ bool Port_HandleKeyPress( uint8_t amikey )
     
     case ( AMIGA_A ): Port_TypeInfo( kPortA ); return true;
     case ( AMIGA_B ): Port_TypeInfo( kPortB ); return true;
-    case ( AMIGA_S ): Settings_Dump(); return true;
+    case ( AMIGA_S ): Settings_Dump( 1 ); return true;
   }
+  */
   return false; // not used
 }
-
 
 
 void Port_Setup()
@@ -197,14 +234,7 @@ void Port_Setup()
   Port_ClearInfo( kPortA );
   Port_ClearInfo( kPortB );
 
-  v = Setting_Get( kSetting_PortAMode );
-  Port_SwitchMode( kPortA, v );
-  v = Setting_Get( kSetting_PortBMode );
-  Port_SwitchMode( kPortB, v );
-
-
-  Port_SwitchMode( kPortA, kPortMode_ReadPort );
-  Port_SwitchMode( kPortB, kPortMode_ReadPort );
+  Settings_Setup();
 
   // setup the timer ISR
   //cli();
@@ -223,6 +253,9 @@ void Port_Setup()
   Interrupts_On();
 }
 
+// Port_TransitionSense
+//  check for transitions of joystick and buttons and 
+//  stpre them in the tohigh/tolow flags.
 void Port_TransitionSense( unsigned char which )
 {
   ports[ which ].tohigh |= (ports[ which ].raw ^ ports[ which ].prev) 
@@ -234,6 +267,8 @@ void Port_TransitionSense( unsigned char which )
 
 //// ISR Handler routines
 
+// Port_Read_UDLR123_A
+//  Read port A's digital values for all joystick pins
 void Port_Read_UDLR123_A()
 {
   ports[ kPortA ].prev = ports[ kPortA ].raw;
@@ -247,6 +282,8 @@ void Port_Read_UDLR123_A()
                  | ( (PIND & 0x80) ? 0 : kPortB3 );
 }
 
+// Port_Read_UDLR123_B
+//  Read port B's digital values for all joystick pins
 void Port_Read_UDLR123_B()
 {
   ports[ kPortB ].prev = ports[ kPortB ].raw;
@@ -265,6 +302,9 @@ void Port_Read_UDLR123_B()
 int dPollCounter = 0;
 int dPollCounter_Prev = -1;
 
+// Port_ValueToButtons
+//  debug routine that converts the bottom 4 bits of the value
+//  passed in to joystick presses
 void Port_ValueToButtons( int value )
 {
   if( value & 0x01 ) Joystick.pressButton( 20 ); else Joystick.releaseButton( 20 ); 
@@ -275,11 +315,23 @@ void Port_ValueToButtons( int value )
 
 ////////////////////////////////////////////////////////
 
-// any of 00 -> 01 -> 11 -> 10 -> 00       = +1
-// any of 00 -> 10 -> 11 -> 01 -> 00       = -1
 
 #define NA (0)
 // g[ 00 ] [ 01 ] = 1
+// create the two indexes using the two bits of the gray code 
+//  from the mouse or spinner sensor.  It will be a 2 bit value 
+//  0,1,2,3 - 00 01 10 11
+// the first index is the previous state
+// the second is the current state.
+// eg:
+//     prev = 3; // b11
+//     curr = 2; // b10
+//  delta = grayDecode[ prev ][ curr ]
+//       -> grayDecode[ 3 ][ 2 ]
+//  per this: 
+//      any of 00 -> 01 -> 11 -> 10 -> 00       = +1
+//      any of 00 -> 10 -> 11 -> 01 -> 00       = -1
+// delta = +1;
 char grayDecode[4][4] = {
                 /*  00  01  10  11  */
     /* 00 to */ {    0, +1, -1, NA },
@@ -288,6 +340,11 @@ char grayDecode[4][4] = {
     /* 11 to */ {   NA, -1, +1,  0 }
 };
 
+// Port_ReadA_Gray
+//  read from port A a graycode device:
+//      kPortDevice_AmiMouse    - Amiga mouse
+//      kPortDevice_STMouse     - Atari ST mouse
+//      kPortDevice_Driving     - Atari VCS Driving controller
 void Port_ReadA_Gray( int jType )
 {
     // read the port
@@ -303,8 +360,14 @@ void Port_ReadA_Gray( int jType )
         // Atari ST mouse
         ports[kPortA].grayX = ( ports[kPortA].raw & kPortST_XA )? 0x01 : 0
                             | ( ports[kPortA].raw & kPortST_XB )? 0x02 : 0;
-        ports[kPortA].grayY = ( ports[kPortA].raw & kPortST_YA )? 0x02 : 0
-                            | ( ports[kPortA].raw & kPortST_YB )? 0x01 : 0;
+
+        if( kPortDevice_Driving ) { 
+            // driving controller only has one axis
+            ports[kPortA].grayY = 0;
+        } else {
+            ports[kPortA].grayY = ( ports[kPortA].raw & kPortST_YA )? 0x02 : 0
+                                | ( ports[kPortA].raw & kPortST_YB )? 0x01 : 0;
+        }
     }
 
     // decode previous and current gray for delta
@@ -320,11 +383,11 @@ void Port_ReadA_Gray( int jType )
 }
 
 
-
 // Port_B_Read_DigitalJoy
 //
-//  poll routine to:
-//    Read Digital 2600/7800 Joystick on port B
+//  poll routine to ead Digital on port B
+//      kPortDevice_Joy2600     - Atari 2600 / SMS 1-3 button joystick
+//      kPortDevice_Joy7800     - Atari 7800 2 button Joystick
 void Port_ReadB_DigitalJoy( int jType )
 {
   // read port B
@@ -340,7 +403,7 @@ void Port_ReadB_DigitalJoy( int jType )
         | ( ( ports[kPortB].raw & kPortB3 ) ? 0 : kPortB2 );
 
     // re-do the transition sensing. 
-	ports[kPortB].raw = newRaw;
+	ports[ kPortB ].raw = newRaw;
     
     ports[ kPortB ].tohigh = 0;
     ports[ kPortB ].tolow = 0;
@@ -350,12 +413,65 @@ void Port_ReadB_DigitalJoy( int jType )
 }
 
 
+// Port_ReadB_Analog
+//  read analog value from port B
+//  - reads each pin twice due to settling issues
+//  - also keeps track of the min and max read and auto-ranges
+//  - converts the value in that range to joystick min/max range via map()
+//      kPortDevice_Paddle  - Atari 2600/Commodore paddles
+void Port_ReadB_Analog()
+{
+    int val = 0;
+
+    // x -- autoscale the value from the known min and max to joystick range
+    val = analogRead( portPinSets[ 1 ][ 8 ] );
+    val = analogRead( portPinSets[ 1 ][ 8 ] );
+    if( val > ports[ kPortB ].maxX ) { ports[ kPortB ].maxX = val; }
+    if( val < ports[ kPortB ].minX ) { ports[ kPortB ].minX = val; }
+
+    ports[ kPortB ].analogX = map( val, 
+        ports[ kPortB ].minX, ports[ kPortB ].maxX,
+        kJoystickMin, kJoystickMax );
+
+    // read paddle 2 (Y)
+    val = analogRead( portPinSets[ 1 ][ 7 ] );
+    val = analogRead( portPinSets[ 1 ][ 7 ] );
+    if( val > ports[ kPortB ].maxY ) { ports[ kPortB ].maxY = val; }
+    if( val < ports[ kPortB ].minY ) { ports[ kPortB ].minY = val; }
+
+    ports[ kPortB ].analogY = map( val,
+        ports[ kPortB ].minY, ports[ kPortB ].maxY,
+        kJoystickMin, kJoystickMax );
+
+    // read the buttons.
+    Port_Read_UDLR123_B();
+    ports[ kPortB ].raw = 
+          ( ( ports[kPortB].raw & kPortLt ) ? kPortB1 : 0 )
+        | ( ( ports[kPortB].raw & kPortRt ) ? kPortB2 : 0 );
+
+    ports[ kPortB ].tohigh = 0;
+    ports[ kPortB ].tolow = 0;
+
+    Port_TransitionSense( kPortB );
+}
+
+
+
+// TBD Support:
+
+//  kPortDevice_JoyCD32     - Commodore Amiga CD-32 
+//  kPortDevice_Joy2800     - integrated single paddle + joystick
+//  kPortDevice_Kybrd       - Atari VCS Keyboard Controller
+//  kPortDevice_Coleco      - Colecovision joystick + keypad
+
+
+
 ////////////////////////////////////////////////////////
 
 // Port_SendJoyP0P1
 //
-//	send HID Joystick 0 or Joystick 1 events from portA or B values
-//
+//  Send HID Joystick 0 or Joystick 1 events from portA or B DIGITAL values
+//  also supports three buttons (B1, B2, B3) to HID buttons 0,1,2 or 10,11,12
 void Port_SendJoyP0P1( int portAB, int joy01 )
 {
   unsigned char bOffset = 0;
@@ -416,10 +532,51 @@ void Port_SendJoyP0P1( int portAB, int joy01 )
 }
 
 
+// Port_Send_Analog_Joystick
+//
+//  Send HID Joystick 0 or Joystick 1 events from portA or B ANALOG values
+//  also supports two buttons (B1, B2) to HID buttons 0,1 or 10,11
+//
+void Port_Send_Analog_Joystick( int portAB, int joy01 )
+{
+    unsigned char bOffset = 0;
+    if( joy01 == kJoyP2 ) { bOffset = 10; }
+
+    if( joy01 == kJoyP1 ) {
+        Joystick.setXAxis( ports[ portAB ].analogX );
+        Joystick.setYAxis( ports[ portAB ].analogY );
+    } else {
+        Joystick.setRyAxis( ports[ portAB ].analogX );
+        Joystick.setRxAxis( ports[ portAB ].analogY );
+    }
+
+    if( ports[ portAB ].tohigh ) {
+
+        // and press button triggers
+        if( ports[ portAB ].tohigh & kPortB1 ) Joystick.pressButton( (bOffset) + 0 );
+        if( ports[ portAB ].tohigh & kPortB2 ) Joystick.pressButton( (bOffset) + 1 );
+        if( ports[ portAB ].tohigh & kPortB3 ) Joystick.pressButton( (bOffset) + 2 );
+
+        // clear the flags
+        ports[ portAB ].tohigh = 0;
+
+    }
+
+    if( ports[ portAB ].tolow ) {
+        // and release button triggers
+        if( ports[ portAB ].tolow & kPortB1 ) Joystick.releaseButton( (bOffset) + 0 );
+        if( ports[ portAB ].tolow & kPortB2 ) Joystick.releaseButton( (bOffset) + 1 );
+        if( ports[ portAB ].tolow & kPortB3 ) Joystick.releaseButton( (bOffset) + 2 );
+
+        // clear the flags
+        ports[ portAB ].tolow = 0;
+    }
+}
+
 
 // Port_SendMouse
 //
-//  send HID Mouse events from portA or B values
+//  send HID Mouse events from portA or B GRAY delta values
 //
 void Port_SendMouse( int portAB )
 {
@@ -455,6 +612,7 @@ void Port_SendMouse( int portAB )
 }
 
 
+
 ////////////////////////////////////////////////////////
 
 void Port_Poll()
@@ -467,10 +625,15 @@ void Port_Poll()
   nextPoll = millis() + kPollDelay;
 
   // port B is a 2600 joystick (up to 3 buttons)
-  Port_ReadB_DigitalJoy( kPortDevice_Joy2600 );
+  //Port_ReadB_DigitalJoy( kPortDevice_Joy2600 );
 
   // sends it out as P1 HID Joystick
-  Port_SendJoyP0P1( kPortB, kJoyP1 );
+  //Port_SendJoyP0P1( kPortB, kJoyP1 );
+
+
+  Port_ReadB_Analog();
+  nextPoll = millis() + 100;
+  Port_Send_Analog_Joystick( kPortB, kJoyP1 );
 
   // send mouse stuff from port A
   Port_SendMouse( kPortA );

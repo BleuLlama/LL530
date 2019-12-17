@@ -2,6 +2,7 @@
  *  
  *  For LL530 v1 hardware
  *  
+ *  v0.90 2019-12-16 More stuff working, docs written
  *  v0.89 2019-12-07 joy+mouse+kyb working, no configurability
  *  v0.87 2019-07-08 joystick/mouse support starting
  *  v0.86 2019-02-17 Help-A/B for explore mode
@@ -9,7 +10,7 @@
  */
 
 
-#define kLL530_Version "LL530_Keyboard v0.89"
+#define kLL530_Version "LL530_Keyboard v0.90"
 
 
 #include <Keyboard.h>       // has all of the HID KeyReport stuff we need
@@ -26,6 +27,10 @@
 #include "Settings.h"       // Settings
 
 // Build configuration is in Config.h
+
+/// live config
+char portDevice[2];
+char portMode[2];
 
 // Usage modes for general system usage
 #define kUsageMode_Normal   (0x00)  /* normal operation */
@@ -333,8 +338,8 @@ void ProcessKey( uint8_t keydown, uint8_t key )
 
 void setup() {
   //// Serial IO (only for debugging) ///////////
-#ifdef kSerialInsteadOfHID
   Serial.begin( 2000000 );
+#ifdef kSerialInsteadOfHID
   while ( !Serial );
   Serial.println( "US-KYB: OK." );
 #endif
@@ -396,6 +401,9 @@ struct KeymapXref xHelp[] {
   { AMIGA_F8,   KEY_F18, KEYM_NONE },
   { AMIGA_F9,   KEY_F19, KEYM_NONE },
   { AMIGA_F10,  KEY_F20, KEYM_NONE },
+
+  // Tandy fix. lol
+  //{ AMIGA_LEFTBRACE, KEY_RIGHTBRACE,  KEYM_NONE },
 
   // MORE HELP FUNCTIONS  ///////////////////////////////
 
@@ -504,16 +512,24 @@ void ExploreA()
   delay( 100 );
 }
 
-// main loop poll
-void loop()
+
+void foreground_loop()
 {
   // do any foreground stuff that needs to happen for port->controller stuff
   Port_Poll();
 
   TypeStuff_Poll();
 
-  //ExploreA();
+  Settings_Poll();
 
+  //ExploreA();
+}
+
+
+// main loop poll
+void loop()
+{
+  foreground_loop();
 
 #ifdef kUseHardResetLine
   //// Keyboard poll ///////////
@@ -524,27 +540,30 @@ void loop()
     del_pressed = 0;
     state = WAIT_RES;
 
-#ifdef kSerialInsteadOfHID
-    Serial.println( "RESET.");
-#endif
+    #ifdef kSerialInsteadOfHID
+        Serial.println( "RESET.");
+    #endif
 
     clearKeyboard();
   } else 
 #endif
 
   if (state == WAIT_RES) { // Waiting for reset end
-#ifdef kSerialInsteadOfHID
-    Serial.print( "Reset Line Pulled" );
-#endif
-    if ((KYBPINS & BITMASK_A500RES) != 0) state = SYNCH_HI;
+    #ifdef kSerialInsteadOfHID
+        Serial.print( "Reset Line Pulled" );
+    #endif
+    if ((KYBPINS & BITMASK_A500RES) != 0)
+      state = SYNCH_HI;
   }
 
   else if (state == SYNCH_HI) { // Sync-Pulse HI
-    if ((KYBPINS & BITMASK_A500CLK) == 0) state = SYNCH_LO;
+    if ((KYBPINS & BITMASK_A500CLK) == 0) 
+      state = SYNCH_LO;
   }
 
   else if (state == SYNCH_LO) { // Sync-Pulse LOW
-    if ((KYBPINS & BITMASK_A500CLK) != 0) state = HANDSHAKE;
+    if ((KYBPINS & BITMASK_A500CLK) != 0) 
+      state = HANDSHAKE;
   }
 
   else if (state == HANDSHAKE) { // Handshake
@@ -575,32 +594,32 @@ void loop()
         Interrupts_On();
         ProcessKey( keydown, key );
 
-#ifdef kSerialInsteadOfHID
-//        Serial.print( (keydown) ? "  Press " : "Release " );
-        Serial.print( (keydown) ? " Prs " : " Rel " );
-        if ( key < 0x10 ) Serial.print( '0' );
-        Serial.println( key, HEX );
-        if( keydown ) {
-          Serial.print( key, HEX );
-        } else {
-          Serial.println( key, HEX );
-        }
-#endif
+        #ifdef kSerialInsteadOfHID
+        //        Serial.print( (keydown) ? "  Press " : "Release " );
+          Serial.print( (keydown) ? " +++ " : "   - " );
+          if ( key < 0x10 ) Serial.print( '0' );
+          //if( keydown ) {
+          //  Serial.print( key, HEX );
+          //} else {
+            Serial.println( key, HEX );
+          //}
+        #endif
+
         state = HANDSHAKE;
         if (key == AMIGA_HELP) {
           help_pressed = keydown; // "Help" key: special function on/GREEN_OFF
 
 
-#ifdef kDebugOnLEDs
-          if ( keydown ) {
-            RED_ON();
-            GREEN_ON();
-          }
-          else {
-            RED_OFF();
-            GREEN_OFF();
-          }
-#endif /* kDebugOnLEDs */
+          #ifdef kDebugOnLEDs
+            if ( keydown ) {
+              RED_ON();
+              GREEN_ON();
+            }
+            else {
+              RED_OFF();
+              GREEN_OFF();
+            }
+          #endif /* kDebugOnLEDs */
           /*
                     if ( keydown ) {
                       RED_DIM();
@@ -611,11 +630,11 @@ void loop()
         } else if (key == AMIGA_DELETE ) {
           del_pressed = keydown; // "DEL" key: when used with HELP, it's for internal use
 
-#ifdef kDebugOnLEDs
-          if ( keydown ) {
-            GREEN_OFF();
-          }
-#endif /* kDebugOnLEDs */
+          #ifdef kDebugOnLEDs
+            if ( keydown ) {
+              GREEN_OFF();
+            }
+          #endif /* kDebugOnLEDs */
           /*
                     if ( keydown ) {
                       GREEN_DIM();
@@ -660,7 +679,7 @@ void loop()
               } 
 
               // commands to change the keymap
-#ifdef kUseKeymaps
+              #ifdef kUseKeymaps
               /*
                 else if ( key == AMIGA_A )     KeymapSet( kKeymap_US ); // base
                 else if ( key == AMIGA_S )     KeymapSet( kKeymap_SE );
@@ -669,7 +688,7 @@ void loop()
                 else if ( key == AMIGA_G )     KeymapSet( kKeymap_GB );
                 else if ( key == AMIGA_H )     KeymapSet( kKeymap_FI );
               */
-#endif
+              #endif
               else {
                 if( key == AMIGA_A ) {
                   UsageMode( kUsageMode_ExploreA );

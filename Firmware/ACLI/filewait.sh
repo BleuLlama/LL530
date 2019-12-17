@@ -1,6 +1,6 @@
 #!/bin/sh
 
-timeout=5
+timeout=10
 
 echo "waiting for $@.. " > /dev/stderr
 while [ ! -e "$@" ];
