@@ -155,7 +155,7 @@ These options are:
 - K - HID Keyboard - Stella - Keypad Right: 7,8,9,u,i,o,j,k,l,m,,,.
 
 Once you pick your choice, you may see an output like as follows.  For this example, the
-key sequence: "p0jj" was entered to set up port A for reading an Atari 2600 joystick, and
+key sequence: "pajj" was entered to set up port A for reading an Atari 2600 joystick, and
 outputting it as a USB HID Joystick.
 
 	Cfg: a: j->j
