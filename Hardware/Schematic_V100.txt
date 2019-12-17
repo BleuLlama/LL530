@@ -1,0 +1,23 @@
+Schematic_V100.pdf contains the full schematic for the first
+version of the LL530 board released.  The schematic is v1.4
+10 units were produced.
+
+Some board modifications are necessary:
+
+- One of the power rail vias needed to be drilled out to eliminate a short
+
+- Resistors needed to be added to DB9 Port A (J2) as well as DB9 Port B (J17)
+  so that paddle controllers can work.
+
+  On both connectors:
+	- connect a 470k ohm resistor from pin 5 to GND (pin 8)
+	- connect a 470k ohm resistor from pin 9 to GND (pin 8)
+
+  Note that Paddle controllers do not work in both ports simultaneously
+  and on future versions of the board, they may only have these pulldowns
+  added for Port B.
+
+- The solder points for the DIN connector for the Amiga 2000/3000 keyboard
+  are incorrect.  Either swap wires going to pins 1 and 3, and 4 and 5, or 
+  mount the DIN connector on the bottom of the board.
+
