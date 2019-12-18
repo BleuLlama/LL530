@@ -41,13 +41,17 @@ void Settings_Setup()
 
 void Settings_LivePopulate()
 {
-  ports[ kPortA ].mode = Setting_Get( kSetting_PortAMode );
-  ports[ kPortA ].state = 0;
-  ports[ kPortA ].device = Setting_Get( kSetting_PortADevice );
+  Port_NewDevicemode( 
+        kPortA, 
+        Setting_Get( kSetting_PortADevice ),
+        Setting_Get( kSetting_PortAMode )
+        );
 
-  ports[ kPortB ].mode = Setting_Get( kSetting_PortAMode );
-  ports[ kPortB ].state = 0;
-  ports[ kPortB ].device = Setting_Get( kSetting_PortADevice );
+  Port_NewDevicemode( 
+        kPortB, 
+        Setting_Get( kSetting_PortBDevice ),
+        Setting_Get( kSetting_PortBMode )
+        );
 }
 
 
@@ -77,8 +81,6 @@ void Settings_Dump( unsigned char doTypeout )
 void Setting_Set( int idx, unsigned char value )
 {
   EEPROM.update( idx, value );
-
-  Settings_LivePopulate();
 }
 
 unsigned char Setting_Get( int idx )
@@ -134,7 +136,7 @@ char Options_Outputs[] = {
 void Settings_PrintOutput( int d )
 {
   switch( d ) {
-    PDXT( kPortMode_Mouse, "Mouse" );
+    PDXT( kPortMode_Mouse, "HID Mouse" );
     PDXT( kPortMode_Joystick1, "Joystick - P1" );
     PDXT( kPortMode_Joystick2, "Joystick - P2" );
     PDXT( kPortMode_Kyb_Vi, "Keyboard - Vi" );
@@ -165,7 +167,7 @@ void Settings_Show()
       mode = Setting_Get( kSetting_PortBMode );
       Port_TypeInfo( kPortB );
     }
-    Serial.print( F( "  " ));
+    Serial.print( F( "Stored Values:  " ));
     Settings_PrintDevice( device );
     Serial.print( F( "  ->  " ) );
     Settings_PrintOutput( mode );
@@ -269,9 +271,13 @@ void Settings_Poll()
             if( usr_cfg[0] == 'a' ) {
               Setting_Set( kSetting_PortADevice, usr_cfg[3] );
               Setting_Set( kSetting_PortAMode, usr_cfg[6] );
+              Port_NewDevicemode( kPortA, usr_cfg[3], usr_cfg[6] );
+
             } else if( usr_cfg[0] == 'b' ) {
               Setting_Set( kSetting_PortBDevice, usr_cfg[3] );
               Setting_Set( kSetting_PortBMode, usr_cfg[6] );
+              Port_NewDevicemode( kPortB, usr_cfg[3], usr_cfg[6] );
+
             } else {
               Serial.println( "setting port ?? ");
             }
