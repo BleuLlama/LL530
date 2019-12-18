@@ -37,7 +37,7 @@
 									// U/D/L/R, out B1:HIGH, read B2,B3
 
 #define kPortDevice_Joy2800	  ('2') 	// Atari 2800 (Sears Video Arcade 2)
-									// U/D/L/R, B1, Axis: Y:5
+									// U/D/L/R, B1, Axis: Rx:5
 
 #define kPortDevice_JoyCD32   ('3')  // Amiga CD-32 joystick connected (w/shift register)
 									// U/D/L/R,  L1, R1, Pause, 12:Y(B4), 3:B(B2), 6:R(B1), 9:G(B3)

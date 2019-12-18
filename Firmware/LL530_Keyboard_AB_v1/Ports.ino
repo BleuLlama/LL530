@@ -276,10 +276,6 @@ void Port_Read_UDLR123_B()
 }
 
 
-
-////////////////////////////////////////////////////////
-
-
 #define NA (0)
 // g[ 00 ] [ 01 ] = 1
 // create the two indexes using the two bits of the gray code 
@@ -740,13 +736,19 @@ void Port_Poll_WriteEvents( int portAB )
         break;
 
       case( kPortMode_Joystick1 ): // "Joystick - P1"
-        Port_SendJoyP0P1( portAB, kJoyP1 ); // eg. digital joystick
-        //Port_Send_Analog_Joystick( portAB, kJoyP1 );  // eg. paddle value
+        if( ports[ portAB ].device == kPortDevice_Paddle ) {
+          Port_Send_Analog_Joystick( portAB, kJoyP1 );  // eg. paddle value
+        } else { 
+          Port_SendJoyP0P1( portAB, kJoyP1 ); // eg. digital joystick
+        }
         break;
 
       case( kPortMode_Joystick2 ): // "Joystick - P2"
-        Port_SendJoyP0P1( portAB, kJoyP2 ); // eg. digital joystick
-        //Port_Send_Analog_Joystick( portAB, kJoyP2 );  eg. paddle value
+        if( ports[ portAB ].device == kPortDevice_Paddle ) {
+          Port_Send_Analog_Joystick( portAB, kJoyP2 );  //eg. paddle value
+        } else {
+          Port_SendJoyP0P1( portAB, kJoyP2 ); // eg. digital joystick
+        }
         break;
 
       case( kPortMode_Disabled ): // "Disabled"
