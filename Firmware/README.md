@@ -20,6 +20,15 @@ currently using.
 - Screen - version 4.00.03 (for serial console connection)
 - git - version 2.14.0
 
+Required Arduino Libraries:
+
+- Keyboard 1.0.2 (Arduino provided)
+- Mouse 1.0.1 (Arduino provided)
+- Joystick 2.0.5 (https://github.com/MHeironimus/ArduinoJoystickLibrary)
+
+You will need to downlaod and install the Joystick library per the
+instructions provided by Matthew Heironimus on the page above.
+
 Check out this entire proejct: https://github.com/BleuLlama/LL530
 
     # git clone https://github.com/BleuLlama/LL530.git
@@ -219,3 +228,14 @@ They only implement the Amiga serial protocol, but with the keyboard
 wired differently than our design.
 
 They are built using the Arduino application.
+
+----
+
+# Future 
+
+Some things I'd like to expand on this in the future:
+
+- Automatic sensing of input device and switching to preset configurations..  ie, a Mouse detected will become a HID mouse, Joystick in port B will become the Player 2 Joystick, etc.
+- My own HID library providing all of the above functionality, plus:
+ - Ability to change HID Descriptor name
+ - Handling of keyboard LEDs
