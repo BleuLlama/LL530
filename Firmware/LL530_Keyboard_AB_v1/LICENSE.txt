@@ -1,3 +1,16 @@
+With the following exceptions:
+
+LL530_Keyboard_AB_v1.ino -
+		The Amiga serial keyboard scanning state machine
+		and loop are available freeware from the boards at
+		http://amiga.org
+
+usb_hid_keys.h -
+		Released to the public domain in 2016 by MightyPork.
+
+The remaining files and all content is provided under the MIT
+license:
+
 MIT License
 
 Copyright (c) 2020 Scott Lawrence
@@ -19,3 +32,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
