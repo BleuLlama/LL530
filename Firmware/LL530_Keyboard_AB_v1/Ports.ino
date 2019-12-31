@@ -10,7 +10,6 @@
 
 2600 3-btn - all buttons input pullup, B1 B2 B3 as-is
 7800 2-btn - B1 is output HIGH, B2 and B3 are inverted Lbtn and Rbtn
-
 */
 
 
@@ -18,6 +17,13 @@ struct PORTINFO ports[2];
 unsigned long nextPortPoll = 0l;
 
 unsigned long port_tick = 0l;
+
+#define kPinCD32_MODE (4)
+#define kPinCD32_CLOCK_RED  (5)
+#define kPinCD32_SHIFTDATA_BLUE (6)
+
+
+
 
 char portPinSets[2][9] =
 {
@@ -375,7 +381,7 @@ void Port_ReadA_DigitalJoy( int jType )
 
 // Port_B_Read_DigitalJoy
 //
-//  poll routine to ead Digital on port B
+//  poll routine to read Digital on port B
 //      kPortDevice_Joy2600     - Atari 2600 / SMS 1-3 button joystick
 //      kPortDevice_Joy7800     - Atari 7800 2 button Joystick
 void Port_ReadB_DigitalJoy( int jType )
@@ -387,16 +393,46 @@ void Port_ReadB_DigitalJoy( int jType )
   //   - invert buttons 2 and 3
   //   - shift to be buttons 0,1
   if( jType == kPortDevice_Joy7800 ) {
-  unsigned char newRaw = 
+    unsigned char newRaw = 
           ( ports[kPortB].raw & (kPortUp | kPortDn | kPortLt | kPortRt ))
         | ( ( ports[kPortB].raw & kPortB2 ) ? 0 : kPortB1 )
         | ( ( ports[kPortB].raw & kPortB3 ) ? 0 : kPortB2 );
 
     // re-do the transition sensing. 
-  ports[ kPortB ].raw = newRaw;
+    ports[ kPortB ].raw = newRaw;
     
     ports[ kPortB ].tohigh = 0;
     ports[ kPortB ].tolow = 0;
+
+/* doesn't work. tbd later.
+  } else if( jType == kPortDevice_JoyCD32 ) {
+
+    pinMode( portPinSets[ jType ][ kPinCD32_MODE ], OUTPUT );
+    digitalWrite( portPinSets[ jType ][ kPinCD32_MODE ], LOW ); // fire input
+
+    // prep to read
+    pinMode( portPinSets[ jType ][ kPinCD32_CLOCK_RED ], OUTPUT );
+    digitalWrite( portPinSets[ jType ][ kPinCD32_CLOCK_RED ], LOW );
+
+    digitalWrite( portPinSets[ jType ][ kPinCD32_MODE ], HIGH ); // latch shift input
+    int value = 0;
+    int mask = 1;
+    for( unsigned char x = 0; x < 8 ; x++ ) {
+      digitalWrite( portPinSets[ jType ][ kPinCD32_CLOCK_RED ], HIGH );
+      delay( 10 );
+      digitalWrite( portPinSets[ jType ][ kPinCD32_CLOCK_RED ], LOW );
+      if( digitalRead( portPinSets[ jType ][ kPinCD32_SHIFTDATA_BLUE ] ) == LOW ) {
+        value |= mask;
+        mask = mask << 1;
+      }
+    }
+    Serial.println( value, BIN );
+    // restore mode
+    //pinMode( portPinSets[ jType ][ kPinCD32_MODE ], INPUT_PULLUP );
+    //pinMode( portPinSets[ jType ][ kPinCD32_CLOCK_RED ], INPUT_PULLUP ); 
+*/
+
+
   }
 
   Port_TransitionSense( kPortB );
@@ -600,11 +636,12 @@ void Port_SendMouse( int portAB )
 //  sets up port io and gpio modes for a device
 void Port_InitializeDevice( int portAB )
 {
+  /*
     Serial.print( "Port_Initialize Device " );
     Serial.print( portAB, DEC );
     Serial.print( " -> Device " );
     Serial.println( ports[ portAB ].device, HEX );
-
+  */
     switch( ports[ portAB ].device ) {
       case( kPortDevice_Joy2600 ): // "Atari 2600 Joystick"
         Port_PinModeJoystick( portAB );
@@ -625,13 +662,13 @@ void Port_InitializeDevice( int portAB )
         Port_PinModeAnalogs( portAB ); // then setup analog pins
         break;
 
-      case( kPortDevice_Joy2800 ): // "Atari 2800/SVA2 Stick"
       case( kPortDevice_JoyCD32 ): // "CD-32 Controller"
+      case( kPortDevice_Joy2800 ): // "Atari 2800/SVA2 Stick"
       case( kPortDevice_Kybrd ): // "Keyboard Controller"
       case( kPortDevice_Coleco ): // "Coleco Controller"
       case( kPortDevice_Disabled ): // "Disabled"
       default:
-        Serial.println( "Unsupported for now." );
+        //Serial.println( "Unsupported for now." );
         break;
     }
 }
@@ -641,11 +678,12 @@ void Port_InitializeDevice( int portAB )
 //  not used yet.
 void Port_InitializeMode( int portAB )
 {
+  /*
     Serial.print( "Port_Initialize Mode " );
     Serial.print( portAB, DEC );
     Serial.print( " -> Mode " );
     Serial.println( ports[ portAB ].mode, HEX );
-
+  */
     switch( ports[ portAB ].mode ) {
       case( kPortMode_Kyb_Vi ): // "Keyboard - Vi"
       case( kPortMode_Kyb_WASD ): // "Keyboard - WASD"
@@ -700,40 +738,97 @@ void Port_Poll_ReadDevice( int portAB )
       break;
 
     case( kPortDevice_Joy2800 ): // Atari 2800/SVA2 integrated single paddle + joystick
-    case( kPortDevice_JoyCD32 ): // Commodore Amiga CD-32 
     case( kPortDevice_Kybrd ): // Atari VCS Keyboard Controller
     case( kPortDevice_Coleco ): // Colecovision joystick + keypad
       // tbd
       break;
 
+    case( kPortDevice_JoyCD32 ): // Commodore Amiga CD-32 
     case( kPortDevice_Disabled ): // "Disabled"
     default:
-      Serial.println( "Unsupported for now." );
+      //Serial.println( "Unsupported for now." );
       break;
   }
 }
 
+// Port_Send_Keypad
+//  send out joystick/buttons as keypresses
+void Port_Send_Keypresses( int portAB, uint8_t mappingID, uint8_t unitNo )
+{
+  // check for L-H transition on bit,    send press event for     device       control       unit
+  if( ports[ portAB ].tohigh & kPortUp ) KeyDown( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortDn ) KeyDown( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortLt ) KeyDown( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortRt ) KeyDown( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB1 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB2 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB3 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
 
-// Port_Poll_WriteEvents
+  // check for H-L transition on bit,   send release event for device       control       unit
+  if( ports[ portAB ].tolow & kPortUp ) KeyUp( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortDn ) KeyUp( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortLt ) KeyUp( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortRt ) KeyUp( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB1 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB2 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB3 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
+
+  // clear the flags
+  ports[ portAB ].tohigh = 0;
+  ports[ portAB ].tolow= 0;
+}
+
+// Port_Send_Keypad
+//  send button presses as Video Keypad presses 
+//
+// since this is layed out a little differently,
+// we have a separate function for it.
+void Port_Send_Keypad( int portAB, uint8_t unitNo )
+{
+}
+
+// Port_Poll_SendEvents
 //  take the data captured and send out HID joy/mouse/kyb events.
-void Port_Poll_WriteEvents( int portAB )
+void Port_Poll_SendEvents( int portAB )
 {
   switch( ports[ portAB ].mode ) {
-      case( kPortMode_Kyb_Vi ): // "Keyboard - Vi"
-      case( kPortMode_Kyb_WASD ): // "Keyboard - WASD"
       case( kPortMode_Kyb_Stella1 ): // "Keyboard - Stella P1"
-      case( kPortMode_Kyb_Stella2 ): //"Keyboard - Stella P2"
-      case( kPortMode_Kyb_LibRetro1 ): // "Keyboard - LibRetro P1"
-      case( kPortMode_Kyb_LibRetro2 ): // "Keyboard - LibRetro P2"
-      case( kPortMode_Kyb_Keyboard1 ) : // "Keyboard - Stella - P1 Left"
-      case( kPortMode_Kyb_Keyboard2 ): // "Keyboard - Stella - P2 Right"
-        // Send the right keys
-        // tbd
+        Port_Send_Keypresses( portAB, kJKM_Style_StellaJoy, kJKM_UnitA );
         break;
+        
+      case( kPortMode_Kyb_Stella2 ): //"Keyboard - Stella P2"
+        Port_Send_Keypresses( portAB, kJKM_Style_StellaJoy, kJKM_UnitB );
+        break;
+        
+      case( kPortMode_Kyb_LibRetro1 ): // "Keyboard - LibRetro P1"
+        Port_Send_Keypresses( portAB, kJKM_Style_LibRetro, kJKM_UnitA );
+        break;
+
+      case( kPortMode_Kyb_LibRetro2 ): // "Keyboard - LibRetro P2"
+        Port_Send_Keypresses( portAB, kJKM_Style_LibRetro, kJKM_UnitB );
+        break;
+
+      case( kPortMode_Kyb_Vi ): // "Keyboard - Vi"
+        Port_Send_Keypresses( portAB, kJKM_Style_Vi, kJKM_UnitA );
+        break;
+
+      case( kPortMode_Kyb_WASD ): // "Keyboard - WASD"
+        Port_Send_Keypresses( portAB, kJKM_Style_WASD, kJKM_UnitA );
+        break;
+
+      case( kPortMode_Kyb_Keyboard1 ) : // "Keyboard - Stella - P1 Left"
+        Port_Send_Keypad( portAB, kJKM_UnitA );
+        break;
+
+      case( kPortMode_Kyb_Keyboard2 ): // "Keyboard - Stella - P2 Right"
+        Port_Send_Keypad( portAB, kJKM_UnitB );
+        break;
+
 
       case( kPortMode_Mouse ): // "HID Mouse"
         Port_SendMouse( portAB );
         break;
+
 
       case( kPortMode_Joystick1 ): // "Joystick - P1"
         if( ports[ portAB ].device == kPortDevice_Paddle ) {
@@ -750,6 +845,7 @@ void Port_Poll_WriteEvents( int portAB )
           Port_SendJoyP0P1( portAB, kJoyP2 ); // eg. digital joystick
         }
         break;
+
 
       case( kPortMode_Disabled ): // "Disabled"
       default:
@@ -797,7 +893,7 @@ void Port_Poll()
     }
 
     Port_Poll_ReadDevice( i );
-    Port_Poll_WriteEvents( i );
+    Port_Poll_SendEvents( i );
   }
 
 #ifdef NEVER

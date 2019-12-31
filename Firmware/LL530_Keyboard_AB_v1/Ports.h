@@ -65,10 +65,10 @@ struct PORTINFO {
   unsigned char device;
   
   // general reading, digital change sense
-  unsigned char raw;
-  unsigned char prev;
-  unsigned char tohigh;
-  unsigned char tolow;
+  unsigned int raw;
+  unsigned int prev;
+  unsigned int tohigh;
+  unsigned int tolow;
 
   // gray code decoding
   char grayX;
