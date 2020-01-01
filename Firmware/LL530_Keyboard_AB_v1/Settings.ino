@@ -89,7 +89,7 @@ void Settings_Dump( unsigned char doTypeout )
            EEPROM.read( 0 ), EEPROM.read( 1 ), EEPROM.read( 2 ), EEPROM.read( 3 ) );
   if( doTypeout ) TypeStuff( buf ); else Serial.println( buf );
 
-  sprintf( buf, "#  A  %02x %02x %02x\n", 240, 22, 9,
+  sprintf( buf, "#  A  %02x %02x %02x\n",
       Setting_Get( kSetting_PortAMode ),
       Setting_Get( kSetting_PortADevice ), 
       Setting_Get( kSetting_PortAState )
@@ -181,7 +181,7 @@ void Settings_PrintOutput( int d )
 
 void Settings_Show()
 {
-  int i, device, mode;
+  unsigned char i, device, mode;
 
   for( i=0 ; i<2 ; i++ ) {
     if( i==0 ) {
@@ -194,8 +194,12 @@ void Settings_Show()
       Port_TypeInfo( kPortB );
     }
     Serial.print( F( "Stored Values:  " ));
+    Serial.print( device, HEX );
+    Serial.print( " " );
     Settings_PrintDevice( device );
     Serial.print( F( "  ->  " ) );
+    Serial.print( mode, HEX );
+    Serial.print( " " );
     Settings_PrintOutput( mode );
     Serial.println();
   }

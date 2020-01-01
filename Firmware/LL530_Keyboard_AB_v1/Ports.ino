@@ -171,11 +171,11 @@ void Port_TypeInfo( unsigned char portNo )
     return;
   }
 
-  sprintf( buf, "\n#  Raw: %d\n", ports[ portNo ].raw );
+  sprintf( buf, "\n#   Raw: %d\n", ports[ portNo ].raw );
   OUTPUTT( buf );
-  sprintf( buf, "#  State: %d\n", ports[ portNo ].state );
+  sprintf( buf, "# State: %d\n", ports[ portNo ].state );
   OUTPUTT( buf );
-  sprintf( buf, "#   ISRs: %ld\n", port_tick );
+  sprintf( buf, "#  ISRs: %ld\n", port_tick );
   OUTPUTT( buf );
 }
 
