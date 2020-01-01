@@ -2,151 +2,180 @@
 
 Doc version 1.0 - 2020-Jan-01 - SL
 
-## Overview
+# Overview
+
+This document is meant to be a kind of centralized point for these projects
+as a reference for pinouts of various controllers, as well as communicating
+with them, etc.
+
+# Connector
+
+The general pinout for the digital "Atari" joystick is:
+
+| Pin | Function |
+| --- | -------- |
+| 1 | GPIO (digital) |
+|	2 |	GPIO (digital) |
+|	3 |	GPIO (digital) |
+|	4 |	GPIO (digital) |
+|	5 |	GPIO (digital/analog) |
+|	6 |	GPIO (digital) |
+|	7 |	+5 Volts |
+|	8 |	Ground |
+|	9 |	GPIO (digital/analog) |
 
 For the sake of this document, the interactions are between the
-"controller" and the "host".
+"controller" and the "host", and posess these qualities: (unless otherwise noted)
 
-Connector:
-	General Pinout:
-		1	GPIO (digital)
-		2	GPIO (digital)
-		3	GPIO (digital)
-		4	GPIO (digital)
-		5	GPIO (digital/analog)
+## Host
 
-		6	GPIO (digital)
-		7	+5 Volts
-		8	Ground
-		9	GPIO (digital/analog)
+- has 9 pin D (DE-9) male connector
+- All GPIO pins have weak pullups
+- Pins 5 and 9 are pulled down to ground via 470k ohm resistor (for analog reads)
 
-	Host:
-		- has 9 pin D (DE-9) male connector
-		- All GPIO pins have weak pullups
-		- Pins 5 and 9 are pulled down to ground via 470k ohm resistor (for analog reads)
+## Controller: 
 
-	Controller: (unless otherwise noted)
-		- has 9 pin D (DE-9) female connector
-		- All GPIO pins are floating/open when not "pressed"
-		- All GPIO pins are shorted to ground (pin 8) when "pressed"
+- has 9 pin D (DE-9) female connector
+- All GPIO pins are floating/open when not "pressed"
+- All GPIO pins are shorted to ground (pin 8) when "pressed"
 
 ## Atari wire colors:
 
-		Function	Joystick	Paddle		Steering	Keyboard
-
-	1	Up			White		-			White		Brown
-	2	Down		Blue		-			Blue		Red
-	3	Left		Green		Green		-			Orange
-	4	Right		Brown		Brown		-			Yellow
-	5	Button 3	-			Red			-			-
-
-	6	Fire		Orange		-			Orange		Blue
-	7	+5v			-			Yellow		-			Violet
-	8	Ground		Black		Black		Black		Gray
-	9	Button 2	-			(Red)		-			White
+| Pin | Function | Joystick | Paddle | Steering | Keyboard |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1 | Up | White | - | White | Brown | 
+| 2 | Down | Blue | - | Blue | Red | 
+| 3 | Left | Green | Green | - | Orange | 
+| 4 | Right | Brown | Brown | - | Yellow | 
+| 5 | Button 3 | - | Red | - | - | 
+| 6 | Fire | Orange | - | Orange | Blue | 
+| 7 | +5v | - | Yellow | - | Violet | 
+| 8 | Ground | Black | Black | Black | Gray | 
+| 9 | Button 2 | - | (Red) | - | White | 
 
 
 ----------------------------------------
+
 ## Digital ("Atari") Joystick
 
-	Example models:
-		Atari cx-10, cx-20
-		Commodore Triangular Stick
-		Epyx 500XJ
-		TAC-2
-		Sega Master System Control Pad (2 buttons)
+- Example models include:
+-- Atari cx-10, cx-20
+-- Commodore 1311 Joystick
+-- Epyx 500XJ
+-- TAC-2
+-- Sega Master System Control Pad (2 buttons)
+- Most of these devices have one button.
 
-	- Most devices have one button
+### Pinout
 
-	Pinout:
-		1	Up
-		2	Down
-		3	Left
-		4	Right
-		5	Button 3	(almost never used)
+| Pin | Function | Notes |
+|:---:|:---:|:---:|
+| 1 | Up | |
+| 2 | Down | |
+| 3 | Left | |
+| 4 | Right | |
+| 5 | Button 3	 | (almost never used)|
+| 6 | Button 1 | |
+| 7 | +5V | |
+| 8 | Ground | |
+| 9 | Button 2	 | (second button on SMS) |
 
-		6	Button 1
-		7	+5V
-		8	Ground
-		9	Button 2	(second button on SMS)
+### Initialization
 
-	Init:
-		- 1,2,3,4,5,6,9: INPUT, weak pullup
+- 1,2,3,4,5,6,9: INPUT, weak pullup
 
-	Read:
-		READ 1,2,3,4,5,6,9: HIGH (open), LOW (pressed)
+### Reading
+
+- READ 1,2,3,4,5,6,9: HIGH (open), LOW (pressed)
 
 
 ----------------------------------------
 ## Atari 7800 Joystick
 
-	- Mostly the same as standard digital joystick
-	- Has two buttons
+- Mostly the same as standard digital joystick
+- Has two buttons
+- if read as a 2600 controller (without 7800-specific Init)
+-- Pin 6 operates like 2600 fire button as usual
+-- Reads on Pins 5 and 9 will be HIGH (intenrnal pullup)
 
+### Pinout
 	Pinout:
-		1	Up
-		2	Down
-		3	Left
-		4	Right
-		5 	Button 1 input
+| Pin | Function |
+|:---:|:---:|
+|1 | Up | 
+|2 | Down | 
+|3 | Left | 
+|4 | Right | 
+|5 | Button 1 input | 
+|6 | output for button reading | 
+|7 | +5V | 
+|8 | Ground | 
+|9 | Button 2 input | 
 
-		6	output for button reading
-		7	+5V
-		8	Ground
-		9	Button 2 input
+### Initialization
 
-	Init:
-		- 1,2,3,4,5,9: INPUT, weak pullup
-		- 6: OUTPUT, set HIGH
+- 1,2,3,4,5,9: INPUT, weak pullup
+- 6: OUTPUT, set HIGH
 
-	Read:
-		READ 1,2,3,4: HIGH (open), LOW (pressed)
-		READ 5,9: LOW (open), HIGH (pressed)
+### Reading
 
-	Notes:
-		- if read as a 2600 controller (without 7800-specific Init)
-			- Pin 6 operates like 2600 fire button as usual
-			- Reads on Pins 5 and 9 will be HIGH (intenrnal pullup)
-
+- READ 1,2,3,4: HIGH (open), LOW (pressed)
+- READ 5,9: LOW (open), HIGH (pressed)
 
 ----------------------------------------
 
 ## Atari/Commodore Paddle
 
-	Pinout:
-		1	-
-		2	-
-		3	Right Paddle Button
-		4	Left Paddle Button
-		5	Left Paddle Wiper
+- Atari has 1Meg ohm potentiometer
+- Commodore has 470k ohm potentiometer
+- pin 9/5 are connected to pot wiper.
+- one side of pot is connected to pin 7 (+5v)
+- Other side of pot is OPEN
+- weak pulldown in host is required to read voltage divider
+- Rightmost extent - CW - is +5v
+- Leftmost extent - CCW - is OPEN
+	
+### Pinout
 
-		6	-
-		7	+5V
-		8	Ground
-		9	Right Paddle Wiper
+| Pin | Function |
+|:---:|:---:|
+| 1 | - |
+| 2 | - |
+| 3 | Right Paddle Button |
+| 4 | Left Paddle Button |
+| 5 | Left Paddle Wiper |
+| 6 | - |
+| 7 | +5V |
+| 8 | Ground |
+| 9 | Right Paddle Wiper |
 
-	- Atari has 1Meg ohm potentiometer
-	- Commodore has 470k ohm potentiometer
-	- pin 9/5 are connected to pot wiper.
-	- one side of pot is connected to pin 7 (+5v)
-	- Other side of pot is OPEN
-	- weak pulldown in host is required to read voltage divider
-	- Rightmost extent - CW - is +5v
-	- Leftmost extent - CCW - is OPEN
+### Initialization
 
-	Init:
-		- 3,4: INPUT, weak pullup
-		- 5,9: Analog Input
+- 3,4: INPUT, weak pullup
+- 5,9: Analog Input
 
-	Read:
-		READ 3,4: HIGH (open), LOW (pressed)
-		READ 5,9: Sample Analog value
+### Reading
+
+- READ 3,4: HIGH (open), LOW (pressed)
+- READ 5,9: Sample Analog value
 
 ----------------------------------------
 
 ## Atari 2800 / Sears Video Arcade II Controller
 
+
+### Pinout
 	Pinout:
+| Pin | Function |
+|:---:|:---:|
+
+### Initialization
+
+- 
+
+### Reading
+
+- 	Pinout:
 		1	Up
 		2	Down
 		3	Left
@@ -176,7 +205,19 @@ Connector:
 
 ## Amiga / Atari ST Mouse / VCS Steering/Driving controller
 
+
+### Pinout
 	Pinout:
+| Pin | Function |
+|:---:|:---:|
+
+### Initialization
+
+- 
+
+### Reading
+
+- 	Pinout:
 			Amiga		Atari		Driving
 		1 	V			XB			XB
 		2	H			XA			XA
@@ -218,7 +259,19 @@ Connector:
 
 ## Atari VCS Keyboard/Video Touch Pad
 
+
+### Pinout
 	Pinout:
+| Pin | Function |
+|:---:|:---:|
+
+### Initialization
+
+- 
+
+### Reading
+
+- 	Pinout:
 		1 - Row 0 	1 2 3
 		2 - Row 1	4 5 6
 		3 - Row 2	7 8 9
@@ -255,7 +308,19 @@ Connector:
 
 ## Amiga CD-32 Controller
 
+
+### Pinout
 	Pinout:
+| Pin | Function |
+|:---:|:---:|
+
+### Initialization
+
+- 
+
+### Reading
+
+- 	Pinout:
 		1	Up
 		2	Down
 		3	Left
@@ -328,7 +393,19 @@ Connector:
 
 ## Colecovision / Coleco Adam Controller
 
-	Pinout A:
+
+### Pinout A
+	Pinout:
+| Pin | Function |
+|:---:|:---:|
+
+### Initialization
+
+- 
+
+### Reading
+
+- 	Pinout A:
 		1	Up
 		2	Down
 		3	Left
