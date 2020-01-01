@@ -3,6 +3,9 @@
 
 This file serves as my personal TODO feature and bugfix list.
 
+----
+
+# Todo
 
 - 2800 controller testing
 - VCS Keyboard/Video Pad support
@@ -32,8 +35,11 @@ This file serves as my personal TODO feature and bugfix list.
 
 # Future
 
+- Automatic controller/config 
 - CD32 controller support - maybe?
-
+- My own HID library providing all of the above functionality, plus:
+ - Ability to change HID Descriptor name
+ - Handling of keyboard LEDs -> board LEDs
 
 # Bugfixes
 

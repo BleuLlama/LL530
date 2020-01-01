@@ -1,6 +1,8 @@
+# Amiga Keyboards
 
-# Overview
+Doc version 1.0 - 2020-Jan-01 - SL
 
+## Overview
 
 This document is meant as an overview to various bits of informaiton
 I've discovered about the Amiga serial keyboards, as well as info around
