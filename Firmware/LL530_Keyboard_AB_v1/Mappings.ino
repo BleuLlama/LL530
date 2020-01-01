@@ -161,7 +161,7 @@ const uint8_t ktab[]  = {
 
 
   /* Proper meta keys: (not used) */
-    KEY_LEFTSHIFT,  /* 0x60  Left Shift */
+  KEY_LEFTSHIFT,  /* 0x60  Left Shift */
   KEY_RIGHTSHIFT, /* 0x61  Right Shift */
   0, //KEY_CAPSLOCK,   /* 0x62  Caps Lock Toggle */
   KEY_LEFTCTRL,   /* 0x63  Control */
@@ -239,7 +239,7 @@ struct KeymapXref xHelp[] {
 //    atari joystick -> HID USB Key presses
 //
 
-uint8_t keymapLookups[6][7][2] = {
+uint8_t keymapLookups[7][7][2] = {
   { /* 0: stella Joystick on keyboard
           UP
       LEFT  RIGHT    SPACE 5 4
@@ -249,13 +249,14 @@ uint8_t keymapLookups[6][7][2] = {
         G   J    F 7 6
           H
     */
-    { KEY_UP_ARROW,     KEY_Y },  // up
-    { KEY_DOWN_ARROW,   KEY_H },  // down
-    { KEY_LEFT_ARROW,   KEY_G },  // left
-    { KEY_RIGHT_ARROW,  KEY_J },  // right 
-    { KEY_SPACE,        KEY_F },  // fire 1
-    { KEY_5,            KEY_7 },  // fire 2 
-    { KEY_4,            KEY_6 },  // fire 3 ?
+    { KEY_UP,     KEY_Y },  // up
+    { KEY_DOWN,   KEY_H },  // down
+    { KEY_LEFT,   KEY_G },  // left
+    { KEY_RIGHT,  KEY_J },  // right 
+    { KEY_SPACE,  KEY_F },  // fire 1
+    { KEY_5,      KEY_7 },  // fire 2 
+    { KEY_4,      KEY_6 },  // fire 3 ?
+
   }, 
   { /* 1: LibRetro
           UP
@@ -266,17 +267,17 @@ uint8_t keymapLookups[6][7][2] = {
         D   G    A S Q
           F
     */
-    { KEY_UP_ARROW,     KEY_R },
-    { KEY_DOWN_ARROW,   KEY_F },
-    { KEY_LEFT_ARROW,   KEY_D },
-    { KEY_RIGHT_ARROW,  KEY_G },
-    { KEY_LEFT_CTRL,    KEY_A },
-    { KEY_LEFT_ALT,     KEY_S },
-    { KEY_SPACE,        KEY_Q },
+    { KEY_UP,       KEY_R },
+    { KEY_DOWN,     KEY_F },
+    { KEY_LEFT,     KEY_D },
+    { KEY_RIGHT,    KEY_G },
+    { KEY_LEFTCTRL, KEY_A },
+    { KEY_LEFTALT,  KEY_S },
+    { KEY_SPACE,    KEY_Q },
   },
   { /* 2: vi
           K
-        H   L    ESC I /
+        H   L    ESC I SLASH
           J
     */
     { KEY_K,            KEY_K },
@@ -301,8 +302,8 @@ uint8_t keymapLookups[6][7][2] = {
     { KEY_A,            KEY_J },
     { KEY_D,            KEY_L },
     { KEY_SPACE,        KEY_U },
-    { KEY_LEFT_SHIFT,   KEY_RIGHT_SHIFT },
-    { KEY_LEFT_ALT,     KEY_RIGHT_ALT },
+    { KEY_LEFTSHIFT,   KEY_RIGHTSHIFT },
+    { KEY_LEFTALT,     KEY_RIGHTALT },
   },
   { /* 4: Video Pad/Keyboard
 
@@ -310,7 +311,6 @@ uint8_t keymapLookups[6][7][2] = {
         Q W E      I O P
         A S D      K L ;
         Z X C      , . /
-
     */
     { KEY_1, KEY_8 }, { KEY_2, KEY_9 }, { KEY_3, KEY_0 },
     { KEY_Q, KEY_8 }, { KEY_W, KEY_O }, { KEY_E, KEY_P },
@@ -318,7 +318,25 @@ uint8_t keymapLookups[6][7][2] = {
     // 5: second half of video pad/keyboard
     { KEY_A, KEY_K }, { KEY_S, KEY_L }, { KEY_D, KEY_SEMICOLON },
     { KEY_Z, KEY_COMMA }, { KEY_X, KEY_DOT }, { KEY_C, KEY_SLASH },
-  }
+  },
+};
+
+
+///////////////////////////////////////////////////////////////
+// HID code to Modifier table
+//  used for the code for the above tables to send modifier keys
+
+uint8_t hid2mod[ 9 ][ 2 ] {
+  { KEY_LEFTCTRL, KEYM_LEFTCTRL },
+  { KEY_LEFTSHIFT, KEYM_LEFTSHIFT },
+  { KEY_LEFTALT, KEYM_LEFTALT },
+  { KEY_LEFTMETA, KEYM_LEFTMETA },
+
+  { KEY_RIGHTCTRL, KEYM_RIGHTCTRL },
+  { KEY_RIGHTSHIFT, KEYM_RIGHTSHIFT },
+  { KEY_RIGHTALT, KEYM_RIGHTALT },
+  { KEY_RIGHTMETA, KEYM_RIGHTMETA },
+  { 0x00, 0x00 }
 };
 
 

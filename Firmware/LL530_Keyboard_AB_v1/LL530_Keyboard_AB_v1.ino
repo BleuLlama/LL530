@@ -1,7 +1,13 @@
 /* LL530 Firmware
  *  
- *  For LL530 v1 hardware
- *  
+ *  For LL530 v1.x hardware
+ */
+
+
+#define kLL530_Version "LL530_Keyboard_AB v0.91"
+
+ /*
+ *  v0.91 2020-01-01 Key presses from controller inputs working!
  *  v0.90 2019-12-16 More stuff working, docs written
  *  v0.89 2019-12-07 joy+mouse+kyb working, no configurability
  *  v0.87 2019-07-08 joystick/mouse support starting
@@ -33,10 +39,6 @@
 	OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
-
-
-#define kLL530_Version "LL530_Keyboard v0.90"
 
 
 #include <Keyboard.h>       // has all of the HID KeyReport stuff we need
@@ -578,6 +580,7 @@ void loop()
 ////////////////////////////////////////////////////
 // Sending HID Keyboard Messages...
 
+/*
 void OutPressRelease( uint8_t pr, uint8_t k, uint8_t m )
 {
   if ( pr ) Serial.print( "Press " );
@@ -587,17 +590,27 @@ void OutPressRelease( uint8_t pr, uint8_t k, uint8_t m )
   Serial.print( " " );
   Serial.println( m, HEX );
 }
+*/
 
+// clearKeyboard
+//  clears all modifiers, keys, and Keyboard library presses
 void clearKeyboard() {
+  // our version
   _keyReport.modifiers = 0;
   for (uint8_t i = 0; i < 6; i++) {
     _keyReport.keys[i] = 0;
   }
-  Keyboard.releaseAll();
+  HID_SendReport(2, &_keyReport, 8);
+
+  // and the kyb library's
+  Keyboard.releaseAll();  
 }
 
 
-// keypress and keyrelease will look through the 6 slots, and find an unused one
+// keypress
+//
+//  Sends an Amiga code keyrelease, adjusting it to be USB HID codes
+//  keypress and keyrelease will look through the 6 slots, and find an unused one
 void keypress(uint8_t k) {
 #ifdef kDebugOnLEDs
   GREEN_ON();
@@ -621,7 +634,9 @@ void keypress(uint8_t k) {
 #endif
 }
 
-
+// keyrelease
+//
+//  Sends an Amiga code keyrelease, adjusting it to be USB HID codes
 void keyrelease( uint8_t k )
 {
 #ifdef kDebugOnLEDs
@@ -643,7 +658,9 @@ void keyrelease( uint8_t k )
 #endif
 }
 
-
+// keystroke
+//
+//  Sends an Amiga code + meta keypress/release, adjusting it to be USB HID codes
 void keystroke(uint8_t k, uint8_t m)
 {
   //  OutPressRelease( 1, k, m );
@@ -668,13 +685,70 @@ void keystroke(uint8_t k, uint8_t m)
   }
 }
 
-void KeyDown( uint8_t k )
+
+// HID_KeyToModifier
+//  pass in a HID keycode, and if it's in the hid2mod table, 
+//  we return the modifier key mask that it maps to.
+//  if it was not found return KEYM_NONE (0)
+uint8_t HID_KeyToModifier( uint8_t k )
 {
-  
+  int i = 0;
+  while( hid2mod[ i ][0] ) {
+    if( hid2mod[i][0] == k ) {
+      return hid2mod[i][1];
+    }
+    i++;
+  }
+
+  return KEYM_NONE;
 }
-void KeyUp( uint8_t k )
+
+
+// HID_KeyDown
+//  Send a keydown based on the keycode passed in.
+//  if it's a modifier key, it just adjusts the current modifiers and sends that.
+void HID_KeyDown( uint8_t k )
 {
-  
+  uint8_t m = HID_KeyToModifier( k );
+
+  if( m != KEYM_NONE ) {
+    _keyReport.modifiers |= m;
+  } else {
+    for (uint8_t i = 0; i < 6; i++) {
+      if (_keyReport.keys[i] == 0) {
+        _keyReport.keys[i] = k;
+        break;
+      }
+    }
+  }
+
+#ifndef kDisableHIDOutput
+  HID_SendReport(2, &_keyReport, 8);
+#endif
+}
+
+
+// HID_KeyUp
+//  Send a keydown based on the keycode passed in.
+//  if it's a modifier key, it just adjusts the current modifiers and sends that.
+void HID_KeyUp( uint8_t k )
+{
+  uint8_t m = HID_KeyToModifier( k );
+
+  if( m != KEYM_NONE ) { 
+    _keyReport.modifiers &= ~ m;
+  } else {
+    for (uint8_t i = 0; i < 6; i++) {
+      if (_keyReport.keys[i] == k) {
+        _keyReport.keys[i] = 0;
+      }
+    }
+  }
+
+  //  OutPressRelease( 0, _keyReport.keys[0], _keyReport.modifiers );
+#ifndef kDisableHIDOutput
+  HID_SendReport(2, &_keyReport, 8);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////

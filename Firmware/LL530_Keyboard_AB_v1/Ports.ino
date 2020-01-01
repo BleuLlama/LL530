@@ -200,6 +200,9 @@ void Port_NewDevicemode(
   ports[ portNo ].mode = new_mode;
   ports[ portNo ].state = 0;
   nextPortPoll = 0; // force an update the next time thru the loop
+
+  // make sure we don't have any stuck keys...
+  clearKeyboard();
 }
 
 
@@ -691,7 +694,6 @@ void Port_InitializeDevice( int portAB )
       case( kPortDevice_JoyCD32 ): // "CD-32 Controller"
       case( kPortDevice_Joy2800 ): // "Atari 2800/SVA2 Stick"
       case( kPortDevice_Kybrd ): // "Keyboard Controller"
-      case( kPortDevice_Coleco ): // "Coleco Controller"
       case( kPortDevice_Disabled ): // "Disabled"
       default:
         //Serial.println( "Unsupported for now." );
@@ -712,14 +714,16 @@ void Port_InitializeMode( int portAB )
   */
     switch( ports[ portAB ].mode ) {
       case( kPortMode_Kyb_Vi ): // "Keyboard - Vi"
-      case( kPortMode_Kyb_WASD ): // "Keyboard - WASD"
+      case( kPortMode_Kyb_WASD1 ): // "Keyboard - WASD"
+      case( kPortMode_Kyb_WASD2 ): // "Keyboard - WASD"
       case( kPortMode_Kyb_Stella1 ): // "Keyboard - Stella P1"
       case( kPortMode_Kyb_Stella2 ): //"Keyboard - Stella P2"
       case( kPortMode_Kyb_LibRetro1 ): // "Keyboard - LibRetro P1"
       case( kPortMode_Kyb_LibRetro2 ): // "Keyboard - LibRetro P2"
       case( kPortMode_Kyb_Keyboard1 ) : // "Keyboard - Stella - P1 Left"
       case( kPortMode_Kyb_Keyboard2 ): // "Keyboard - Stella - P2 Right"
-        // probably copy the apporpriate control keys into somewhere?
+        // nothing?
+        break;
 
       case( kPortMode_Mouse ): // "HID Mouse"
       case( kPortMode_Joystick1 ): // "Joystick - P1"
@@ -765,7 +769,6 @@ void Port_Poll_ReadDevice( int portAB )
 
     case( kPortDevice_Joy2800 ): // Atari 2800/SVA2 integrated single paddle + joystick
     case( kPortDevice_Kybrd ): // Atari VCS Keyboard Controller
-    case( kPortDevice_Coleco ): // Colecovision joystick + keypad
       // tbd
       break;
 
@@ -782,22 +785,22 @@ void Port_Poll_ReadDevice( int portAB )
 void Port_Send_Keypresses( int portAB, uint8_t mappingID, uint8_t unitNo )
 {
   // check for L-H transition on bit,    send press event for     device       control       unit
-  if( ports[ portAB ].tohigh & kPortUp ) KeyDown( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortDn ) KeyDown( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortLt ) KeyDown( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortRt ) KeyDown( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortB1 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortB2 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
-  if( ports[ portAB ].tohigh & kPortB3 ) KeyDown( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortUp ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortDn ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortLt ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortRt ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB1 ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB2 ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
+  if( ports[ portAB ].tohigh & kPortB3 ) HID_KeyDown( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
 
   // check for H-L transition on bit,   send release event for device       control       unit
-  if( ports[ portAB ].tolow & kPortUp ) KeyUp( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortDn ) KeyUp( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortLt ) KeyUp( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortRt ) KeyUp( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortB1 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortB2 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
-  if( ports[ portAB ].tolow & kPortB3 ) KeyUp( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortUp ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Up    ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortDn ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Down  ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortLt ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Left  ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortRt ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Right ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB1 ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Fire1 ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB2 ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Fire2 ][ unitNo ] );
+  if( ports[ portAB ].tolow & kPortB3 ) HID_KeyUp( keymapLookups[ mappingID ][ kJKM_Fire3 ][ unitNo ] );
 
   // clear the flags
   ports[ portAB ].tohigh = 0;
@@ -838,8 +841,12 @@ void Port_Poll_SendEvents( int portAB )
         Port_Send_Keypresses( portAB, kJKM_Style_Vi, kJKM_UnitA );
         break;
 
-      case( kPortMode_Kyb_WASD ): // "Keyboard - WASD"
+      case( kPortMode_Kyb_WASD1 ): // "Keyboard - WASD"
         Port_Send_Keypresses( portAB, kJKM_Style_WASD, kJKM_UnitA );
+        break;
+
+      case( kPortMode_Kyb_WASD2 ): // "Keyboard - WASD"
+        Port_Send_Keypresses( portAB, kJKM_Style_WASD, kJKM_UnitB );
         break;
 
       case( kPortMode_Kyb_Keyboard1 ) : // "Keyboard - Stella - P1 Left"
@@ -849,7 +856,6 @@ void Port_Poll_SendEvents( int portAB )
       case( kPortMode_Kyb_Keyboard2 ): // "Keyboard - Stella - P2 Right"
         Port_Send_Keypad( portAB, kJKM_UnitB );
         break;
-
 
       case( kPortMode_Mouse ): // "HID Mouse"
         Port_SendMouse( portAB );
@@ -943,6 +949,9 @@ ISR( TIMER1_COMPA_vect )
 {
   port_tick++;
 
+  // Since mouse/driving has a lot of quick changes that need to be checked for
+  // without the keyboard code getting in the way, so we handle those in an
+  // interrupt ISR routine
   if( ports[ kPortA ].mode == kPortDevice_AmiMouse) {
     Port_ReadA_Gray( kPortDevice_AmiMouse );
 

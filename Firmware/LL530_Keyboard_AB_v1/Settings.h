@@ -88,8 +88,6 @@
 									// Row 0,1,2,3 Out: All H, one L
 									// Col 5,6,9   In 
 
-#define kPortDevice_Coleco	  ('c')  // Colecovision Controller (possible, untested)
-
 
   /////////////////////////////////
   // PORT MODE MAPPINGS (Outputs)
@@ -100,17 +98,19 @@
 #define kPortMode_Joystick2      ('J')   // HID Joy: Rx, Ry, B10, B11, B12
 
 #define kPortMode_Kyb_Vi         ('v')   // outputs as HID Keyboard  (h/j/k/l, escape, enter)
-#define kPortMode_Kyb_WASD       ('w')   // outputs as HID Keyboard  (w/a/s/d, space, lalt)
+#define kPortMode_Kyb_WASD1      ('w')   // outputs as HID Keyboard  (w/a/s/d, space, lalt)
+#define kPortMode_Kyb_WASD2      ('W')   // outputs as HID Keyboard  (see mappings.ino)
 #define kPortMode_Kyb_Stella1    ('s')   // Joy: outputs as HID Keyboard  (up,dn,lt,rt, space, 4, 5)
 			// Paddle: outputs axis position:  X,B1,  Y/B2
 			// Keyboard P0 Left		-> 1,2,3, q,w,e, a,s,d, z,x,c
 			// Keyboard P1 Right	-> 7,8,9, u,i,o, j,k,l, m,,,.  LOL
 #define kPortMode_Kyb_Stella2    ('S')   // Joy: outputs as HID Keyboard  (y,h,g,j, f, 6,7)
-#define kPortMode_Kyb_LibRetro1  ('r')   // outputs as HID Keyboard  ( see below )
-#define kPortMode_Kyb_LibRetro2  ('R')   // outputs as HID Keyboard  ( see below )
+#define kPortMode_Kyb_LibRetro1  ('r')   // outputs as HID Keyboard  ( see mappings.ino )
+#define kPortMode_Kyb_LibRetro2  ('R')   // outputs as HID Keyboard  ( see mappings.ino )
 
 #define kPortMode_Kyb_Keyboard1	 ('k')	// VCS Keyboard Controller (P1 - Left)
 #define kPortMode_Kyb_Keyboard2	 ('K')	// VCS Keyboard Controller (P2 - Right)
+
 
 // libretro:
 // P1 	Up/dn/left/right-> arrow keys,  a,b,x,y -> x,z,s,a

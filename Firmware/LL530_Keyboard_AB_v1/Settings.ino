@@ -121,7 +121,6 @@ char Options_Devices[] = {
   kPortDevice_AmiMouse, kPortDevice_STMouse,
   kPortDevice_Paddle,
   kPortDevice_Driving, kPortDevice_Kybrd,
-  kPortDevice_Coleco,
   0
 };
 
@@ -140,7 +139,6 @@ void Settings_PrintDevice( int d )
     PDXT( kPortDevice_Paddle, "Paddle" );
     PDXT( kPortDevice_Driving, "Driving Controller" );
     PDXT( kPortDevice_Kybrd, "Keyboard Controller" );
-    PDXT( kPortDevice_Coleco, "Coleco Controller" );
     PDXT( kPortDevice_Disabled, "Disabled" );
     default:  Serial.print( F( "Unknown" ));
   }
@@ -151,7 +149,7 @@ char Options_Outputs[] = {
   kPortMode_Disabled,
   kPortMode_Mouse,
   kPortMode_Joystick1, kPortMode_Joystick2,
-  kPortMode_Kyb_Vi, kPortMode_Kyb_WASD,
+  kPortMode_Kyb_Vi, kPortMode_Kyb_WASD1,kPortMode_Kyb_WASD2,
   kPortMode_Kyb_Stella1, kPortMode_Kyb_Stella2,
   kPortMode_Kyb_LibRetro1, kPortMode_Kyb_LibRetro2,
   kPortMode_Kyb_Keyboard1, kPortMode_Kyb_Keyboard2,
@@ -166,7 +164,8 @@ void Settings_PrintOutput( int d )
     PDXT( kPortMode_Joystick1, "Joystick - P1" );
     PDXT( kPortMode_Joystick2, "Joystick - P2" );
     PDXT( kPortMode_Kyb_Vi, "Keyboard - Vi" );
-    PDXT( kPortMode_Kyb_WASD, "Keyboard - WASD" );
+    PDXT( kPortMode_Kyb_WASD1, "Keyboard - WASD P1" );
+    PDXT( kPortMode_Kyb_WASD2, "Keyboard - WASD P2 (IJKL)" );
     PDXT( kPortMode_Kyb_Stella1, "Keyboard - Stella P1" );
     PDXT( kPortMode_Kyb_Stella2, "Keyboard - Stella P2" );
     PDXT( kPortMode_Kyb_LibRetro1, "Keyboard - LibRetro P1" );
@@ -279,7 +278,7 @@ void Settings_Poll()
               Serial.println( F( "Port? Q/a/b" ));
             } else {
               usr_cfg[0] = ch;
-              Serial.println( F( "Device? Q0/j723c/asd/pk" ));
+              Serial.println( F( "Device? Q0/j723/asd/pk" ));
               serMode = kSerMode_Read_Device;
             }
             break;

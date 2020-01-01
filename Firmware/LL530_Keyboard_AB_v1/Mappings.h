@@ -71,13 +71,14 @@ extern struct KeymapXref xHelp[];
 // 
 //  these are the mappings for (for example)
 //    atari joystick -> HID USB Key presses
+//		(see Mappings.ino or project docs for what these are)
 
 // which keymap to use
 #define kJKM_Style_StellaJoy (0)
 #define kJKM_Style_LibRetro  (1)
 #define kJKM_Style_Vi        (2)
 #define kJKM_Style_WASD      (3)
-#define kJKM_Style_VPad      (4)
+#define kJKM_Style_VPad      (4)	/* Note: uses two slots. */
 
 // sub index for input mode
 #define kJKM_Up     (0)
@@ -92,12 +93,19 @@ extern struct KeymapXref xHelp[];
 #define kJKM_UnitA  (0)
 #define kJKM_UnitB  (1)
 
-extern uint8_t keymapLookups[6][7][2];
+extern uint8_t keymapLookups[7][7][2];
 // the layout of this table is:
 	// Array for keymap group (stella, wasd, etc)
 		// array for button (up,down,fire,etc)
 			// array of layer 0 or player 1 keycode to press/release
 
+
+
+///////////////////////////////////////////////////////////////
+// HID code to Modifier table
+//  used for the code for the above tables to send modifier keys
+
+extern uint8_t hid2mod[ 9 ][ 2 ];
 
 ///////////////////////////////////////////////////////////////
 // typeout lookup table
