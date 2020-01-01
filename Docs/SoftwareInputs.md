@@ -30,14 +30,14 @@ etc.
 
 ## LibRetro -  Raspi etc standardized emulation interface
 
-	Player 1 - 'r'
+
+### Player 1 - 'r'
 
           UP
       LEFT  RIGHT    LCTRL  LALT  SPACE
          DOWN
 
-
-    Player 2 - 'R'
+### Player 2 - 'R'
 
           R
         D   G    A S Q
@@ -45,14 +45,14 @@ etc.
 
 ## Stella - Atari VCS Emulator
 
-    Player 1 - 's'
+### Player 1 - 's'
 
           UP
     LEFT      RIGHT       SPACE   5   4
          DOWN
 
 
-    Player 2 - 'S'
+### Player 2 - 'S'
 
           Y
         G   J    F 7 6
@@ -60,20 +60,20 @@ etc.
 
 ## WASD - Standard PC game input layout
 
-    Player 1 - 'w'
+### Player 1 - 'w'
 
           W
         A   D    SPACE LSHIFT LALT
           S
 
-    Player 2 - 'W'
+### Player 2 - 'W'
           I
         J   L    U RSHIFT RALT
           K
 
 ## VI - text editor - here as a joke
 
-    Player 1/2 - 'v'
+### Player 1/2 - 'v'
 
           K
         H   L    ESC I SLASH
@@ -81,8 +81,7 @@ etc.
 
 ## VCS Video Pad/Keyboard controller
 
-    Left - 'k'
-    Right - 'K'
+### Left Pad - 'k' / Right Pad - 'K'
 
     	Left       Right
 
