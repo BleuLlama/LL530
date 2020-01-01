@@ -59,11 +59,11 @@ For the sake of this document, the interactions are between the
 ## Digital ("Atari") Joystick
 
 - Example models include:
--- Atari cx-10, cx-20
--- Commodore 1311 Joystick
--- Epyx 500XJ
--- TAC-2
--- Sega Master System Control Pad (2 buttons)
+  - Atari cx-10, cx-20
+  - Commodore 1311 Joystick
+  - Epyx 500XJ
+  - TAC-2
+  - Sega Master System Control Pad (2 buttons)
 - Most of these devices have one button.
 
 ### Pinout
@@ -95,8 +95,8 @@ For the sake of this document, the interactions are between the
 - Mostly the same as standard digital joystick
 - Has two buttons
 - if read as a 2600 controller (without 7800-specific Init)
--- Pin 6 operates like 2600 fire button as usual
--- Reads on Pins 5 and 9 will be HIGH (intenrnal pullup)
+  - Pin 6 operates like 2600 fire button as usual
+  - Reads on Pins 5 and 9 will be HIGH (intenrnal pullup)
 
 ### Pinout
 
@@ -202,14 +202,14 @@ For the sake of this document, the interactions are between the
 - Weak pulliups are needed for all inputs as per joystick
 - each pair of X or Y values are a gray code sequence as movement occurs
 - if viewed as 2 binary bit values:
--- 00 -> 01 -> 11 -> 10 -> 00		any of these transitions is positive movement
--- 00 -> 10 -> 11 -> 01 -> 00		any of these transitions is negative movement
+  - 00 -> 01 -> 11 -> 10 -> 00		any of these transitions is positive movement
+  - 00 -> 10 -> 11 -> 01 -> 00		any of these transitions is negative movement
 - Atari uses XA/XB and YA/YB for notation
 - Amiga uses H/HQ and V/VQ for notation
 - VCS Driving controller:
--- pins 3 and 4 are not connected and should be ignored
--- "positive movement" = Clockwise rotation
--- 4 complete sequences per revolution
+  - pins 3 and 4 are not connected and should be ignored
+  - "positive movement" = Clockwise rotation
+  - 4 complete sequences per revolution
 
 - Quadrature pins need to be sampled simultaneously
 - time between readings should be very short
@@ -250,31 +250,18 @@ For the sake of this document, the interactions are between the
 - Rows are outputs
 - Columns are inputs
 
-
-- 	Pinout:
-		1 - Row 0 	1 2 3
-		2 - Row 1	4 5 6
-		3 - Row 2	7 8 9
-		4 - Row 3	* 0 #
-
-		5 - Col 0	1 4 7 *
-		6 - Col 2	3 6 9 #
-		7	+5V
-		8	Ground
-		9 - Col 1   2 5 8 0
-
 ### Pinout
 
 | Pin | Function | (buttons) |
 |:---:|:---:|:---:|
-| 1 - Row 0 | 1 2 3|
-| 2 - Row 1	| 4 5 6|
-| 3 - Row 2	| 7 8 9|
-| 4 - Row 3	| * 0 #|
-| 5 - Col 0	| 1 4 7 *|
-| 6 - Col 2	| 3 6 9 #|
-| 7	+5V ||
-| 8	Ground ||
+| 1 | Row 0 | 1 2 3|
+| 2  | Row 1	| 4 5 6|
+| 3 | Row 2	| 7 8 9|
+| 4 | Row 3	| * 0 #|
+| 5 | Col 0	| 1 4 7 *|
+| 6 | Col 2	| 3 6 9 #|
+| 7 | +5V ||
+| 8 | Ground ||
 | 9 - Col 1 |   2 5 8 0|
 
 ### Initialization
@@ -286,14 +273,14 @@ For the sake of this document, the interactions are between the
 ### Reading
 
 - FOREACH row( 0..3 ) {
--- WRITE all rows HIGH
--- WRITE thisRow LOW
--- READ col0
--- READ col1
--- READ col2
--- }
+  - WRITE all rows HIGH
+  - WRITE thisRow LOW
+  - READ col0
+  - READ col1
+  - READ col2
+  - }
 - Using read col values, determine which buttons are pressed
--- HIGH (open), LOW (pressed)
+  - HIGH (open), LOW (pressed)
 
 
 ----------------------------------------
@@ -302,7 +289,6 @@ For the sake of this document, the interactions are between the
 
 - Data here is based on looking over schematic, and is theoretical
 - I have not successfully read from a CD32 controller yet.
-
 
 ### Pinout
 
@@ -328,16 +314,16 @@ For the sake of this document, the interactions are between the
 - anytime: READ 1,2,3,4: HIGH (open), LOW (pressed) (u/d/l/r)
 - ...
 - CLK 6 - INPUT, weak pullup
--- WRITE MODE 5 HIGH (vcs read mode)
--- READ 1,2,3,4,6: HIGH (open), LOW (pressed) (u/d/l/r/red)
+  - WRITE MODE 5 HIGH (vcs read mode)
+  - READ 1,2,3,4,6: HIGH (open), LOW (pressed) (u/d/l/r/red)
 
 - CLK 6 - OUTPUT, LOW (clock setup)
--- WRITE MODE 5 LOW (cd-32 shift register read mode)
--- FOREACH bits( 0..7 )
---- WRITE CLK 6 HIGH
---- DELAY 1ms (20mhz max)
---- WRITE CLK 6 LOW
---- READ DATA 9 (data bit), shift into Accumulator
+  - WRITE MODE 5 LOW (cd-32 shift register read mode)
+  - FOREACH bits( 0..7 )
+   - WRITE CLK 6 HIGH
+   - DELAY 1ms (20mhz max)
+   - WRITE CLK 6 LOW
+   - READ DATA 9 (data bit), shift into Accumulator
 
 
 ### Bit Ordering
@@ -345,26 +331,25 @@ For the sake of this document, the interactions are between the
 In the order the bits were read in, it should be:
 -  HIGH (open), LOW (pressed)
 - Order: 
--- H	Blue
--- G	Red
--- F	Yellow
--- E	Green
--- D	R Shoulder
--- C	L Shoulder
--- B	Pause
--- A	HIGH
--- x	LOW
--- ...	LOW
+  1. H	Blue
+  2. G	Red
+  3. F	Yellow
+  4. E	Green
+  5. D	R Shoulder
+  6. C	L Shoulder
+  7. B	Pause
+  8. A	HIGH
+  9. x	LOW
+  10. ...	LOW
 
 ### Misc
 
 - Uses 74LS165 Parallel Load 8 bit shift register
--- Pulling 5 LOW latches the data inputs
-
+  - Pulling 5 LOW latches the data inputs
 - Uses a 74LS125 Quad 3-State Negative Enable Buffer
--- A is input
--- C is enable	
--- Y is output - If C =LOW, Y=A otherwise HI-Z
+  - A is input
+  - C is enable	
+  - Y is output - If C =LOW, Y=A otherwise HI-Z
 
 ----------------------------------------
 
@@ -392,7 +377,7 @@ In the order the bits were read in, it should be:
 
 ### Reading
 
-- 	READ 1,2,3,4,6: HIGH (open), LOW (pressed)
+- READ 1,2,3,4,6: HIGH (open), LOW (pressed)
 
 ### Theoretical
 
