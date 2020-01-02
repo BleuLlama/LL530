@@ -252,17 +252,17 @@ For the sake of this document, the interactions are between the
 
 ### Pinout
 
-| Pin | Function | (buttons) |
-|:---:|:---:|:---:|
-| 1 | Row 0 | 1 2 3|
-| 2  | Row 1	| 4 5 6|
-| 3 | Row 2	| 7 8 9|
-| 4 | Row 3	| * 0 #|
-| 5 | Col 0	| 1 4 7 *|
-| 6 | Col 2	| 3 6 9 #|
-| 7 | +5V ||
-| 8 | Ground ||
-| 9 - Col 1 |   2 5 8 0|
+| Pin | Function  | (buttons) |
+|:---:|:---------:|:---------:|
+| 1   | Row 0     | 1 2 3     |
+| 2   | Row 1	    | 4 5 6     |
+| 3   | Row 2	    | 7 8 9     |
+| 4   | Row 3	    | * 0 #     |
+| 5   | Col 0	    |  1 4 7 *  |
+| 6   | Col 2	    |  3 6 9 #  |
+| 7   | +5V       |           |
+| 8   | Ground    |           |
+| 9   | Col 1     |  2 5 8 0  |
 
 ### Initialization
 
@@ -292,7 +292,7 @@ For the sake of this document, the interactions are between the
 
 ### Pinout
 
-| Pin 	| Function | VCS Mode | Shift Mode |
+| Pin | Function| VCS Mode | Shift Mode |
 |:---:|:---:|:---:|:---:|
 | 1		| Up	| Up | Up |
 | 2		| Down	| Down | Down |
