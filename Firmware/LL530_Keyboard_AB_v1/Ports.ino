@@ -48,8 +48,21 @@ unsigned long port_tick = 0l;
 #define kPinCD32_CLOCK_RED  (5)
 #define kPinCD32_SHIFTDATA_BLUE (6)
 
+#define kPin_KB_Row0  (0) /* pin 1 : output - row select */
+#define kPin_KB_Row1  (1) /* pin 2 : output - row select */
+#define kPin_KB_Row2  (2) /* pin 3 : output - row select */
+#define kPin_KB_Row3  (3) /* pin 4 : output - row select */
+#define kPin_KB_Col0  (4) /* pin 5 : input - col read */
+#define kPin_KB_Col1  (6) /* pin 9 : input - col read */
+#define kPin_KB_Col2  (5) /* pin 6 : input - col read */
 
+static const unsigned char kb_row_pins[4] = {
+  kPin_KB_Row0, kPin_KB_Row1, kPin_KB_Row2, kPin_KB_Row3
+};
 
+static const unsigned char kb_col_pins[3] = {
+  kPin_KB_Col0, kPin_KB_Col1, kPin_KB_Col2
+};
 
 char portPinSets[2][9] =
 {
@@ -78,83 +91,96 @@ char portPinSets[2][9] =
 // Port_PinModeJoystick
 //  setup gpio for digital joystick.
 //  U,D,L,R, B1, B2, B3, all with internal pullup
-void Port_PinModeJoystick( unsigned char port )
+void Port_PinModeJoystick( unsigned char portAB )
 {
   for ( int i = 0 ; i < 7 ; i++ ) {
-    pinMode( portPinSets[port][i], INPUT_PULLUP );
+    pinMode( portPinSets[portAB][i], INPUT_PULLUP );
   }
 }
 
 // Port_PinModeMouse
 //  setup gpio for gray-code mouse
 //  same pins as joystick
-void Port_PinModeMouse( unsigned char port )
+void Port_PinModeMouse( unsigned char portAB )
 {
-  return Port_PinModeJoystick( port );
+  return Port_PinModeJoystick( portAB );
 }
 
 // Port_PinModeAnalogs
 //  setup gpio for analog pin input.
 //  NOTE: this should be called after Joystick 
-void Port_PinModeAnalogs( unsigned char port )
+void Port_PinModeAnalogs( unsigned char portAB )
 {
   // analogs.
-  pinMode( portPinSets[port][7], INPUT );
-  pinMode( portPinSets[port][8], INPUT );
+  pinMode( portPinSets[portAB][7], INPUT );
+  pinMode( portPinSets[portAB][8], INPUT );
 }
 
 // Port_PinModeJoystick7800
 //  setup gpio for Atari 7800 two-button joystick
 //  needs one pin output, high to be able to read the buttons
-void Port_PinModeJoystick7800( unsigned char port )
+void Port_PinModeJoystick7800( unsigned char portAB )
 {
-  Port_PinModeJoystick( port );
-  pinMode( portPinSets[port][5], OUTPUT );
-  digitalWrite( portPinSets[port][5], HIGH );
+  Port_PinModeJoystick( portAB );
+  pinMode( portPinSets[portAB][5], OUTPUT );
+  digitalWrite( portPinSets[portAB][5], HIGH );
 }
 
-void Port_PinModeKybrd( unsigned char port )
+
+// Port_PinModeKybrd
+//  setup a port for reading from a VCS Keyboard controller
+void Port_PinModeKybrd( unsigned char portAB )
 {
-  // TBD KYBRD
+  // ROWS are output high
+  for( int i=0 ; i < 4 ; i++ )
+  {
+    pinMode( portPinSets[portAB][ kb_row_pins[i] ], OUTPUT );
+    digitalWrite( portPinSets[portAB][ kb_row_pins[i] ], HIGH );
+  }
+
+  // COLS are input, pullup
+  for( int j=0 ; j < 3 ; j++ ) {
+    pinMode( portPinSets[portAB][ kb_col_pins[j] ], INPUT_PULLUP );
+  }
 }
 
 // Port_ClearInfo
 //  clear the structure
-void Port_ClearInfo( unsigned char portNo )
+void Port_ClearInfo( unsigned char portAB )
 {
-  //ports[ portNo ].mode = kPortMode_ReadPort;
-  ports[ portNo ].state = 0;
-  ports[ portNo ].mode = 0;
+  //ports[ portAB ].mode = kPortMode_ReadPort;
+  ports[ portAB ].state = 0;
+  ports[ portAB ].mode = 0;
 
-  Port_ClearVals( portNo );
+  Port_ClearVals( portAB );
 }
 
-void Port_ClearVals( unsigned char portNo )
+void Port_ClearVals( unsigned char portAB )
 {
   // button and digital controls
-  ports[ portNo ].raw = 0;
-  ports[ portNo ].prev = 0;
-  ports[ portNo ].tohigh = 0;
-  ports[ portNo ].tolow = 0;
+  ports[ portAB ].raw = 0;
+  ports[ portAB ].prev = 0;
+  ports[ portAB ].tohigh = 0;
+  ports[ portAB ].tolow = 0;
 
   // mouse stuff
-  ports[ portNo ].grayX = 0;
-  ports[ portNo ].grayY = 0;
-  ports[ portNo ].prevGrayX = 0;
-  ports[ portNo ].prevGrayY = 0;
+  ports[ portAB ].grayX = 0;
+  ports[ portAB ].grayY = 0;
+  ports[ portAB ].prevGrayX = 0;
+  ports[ portAB ].prevGrayY = 0;
 
-  ports[ portNo ].deltaX = 0;
-  ports[ portNo ].deltaY = 0;
+  ports[ portAB ].deltaX = 0;
+  ports[ portAB ].deltaY = 0;
 
   // these two are in target device scale (joystick)
-  ports[ portNo ].analogX = kJoystickMid; 
-  ports[ portNo ].analogY = kJoystickMid;
+  ports[ portAB ].analogX = kJoystickMid; 
+  ports[ portAB ].analogY = kJoystickMid;
 
   // and these are for autoranging paddles, so in Arduino 0..1024 scale
-  ports[ portNo ].minX = 1024;
-  ports[ portNo ].maxX = 0;
-  ports[ portNo ].minY = 1024;
-  ports[ portNo ].maxY = 0;
+  ports[ portAB ].minX = 1024;
+  ports[ portAB ].maxX = 0;
+  ports[ portAB ].minY = 1024;
+  ports[ portAB ].maxY = 0;
 }
 
 
@@ -169,16 +195,16 @@ void Port_ClearVals( unsigned char portNo )
     Serial.print( X ); Serial.write( '\r' );
 
 //// Foreground routines
-void Port_TypeInfo( unsigned char portNo )
+void Port_TypeInfo( unsigned char portAB )
 {
   char buf[16];
 
   //if ( !typeStuff ) return;
   
-  if( portNo == kPortA ) {
+  if( portAB == kPortA ) {
     OUTPUTT( "\n\rPort A:" ); 
 
-  } else if( portNo == kPortB ) {
+  } else if( portAB == kPortB ) {
     OUTPUTT( "\n\rPort B:" ); 
 
   } else {
@@ -186,9 +212,9 @@ void Port_TypeInfo( unsigned char portNo )
     return;
   }
 
-  sprintf( buf, "\n#   Raw: %d\n", ports[ portNo ].raw );
+  sprintf( buf, "\n#   Raw: %d\n", ports[ portAB ].raw );
   OUTPUTT( buf );
-  sprintf( buf, "# State: %d\n", ports[ portNo ].state );
+  sprintf( buf, "# State: %d\n", ports[ portAB ].state );
   OUTPUTT( buf );
   sprintf( buf, "#  ISRs: %ld\n", port_tick );
   OUTPUTT( buf );
@@ -198,29 +224,29 @@ void Port_TypeInfo( unsigned char portNo )
 // Port_NewDevicemode
 //  change a port for a new mode/device
 void Port_NewDevicemode( 
-        unsigned char portNo, 
+        unsigned char portAB, 
         unsigned char new_device,
         unsigned char new_mode )
 {
-  if ( portNo != kPortA && portNo != kPortB ) return;
+  if ( portAB != kPortA && portAB != kPortB ) return;
 
   Serial.print( "NEW: PORT " );
-  Serial.print( portNo, HEX );
+  Serial.print( portAB, HEX );
   Serial.print( "  Device " );
   Serial.print( new_device, HEX );
   Serial.print( "  Mode " );
   Serial.println( new_mode, HEX );;
   
-  ports[ portNo ].device = new_device;
-  ports[ portNo ].mode = new_mode;
-  ports[ portNo ].state = 0;
+  ports[ portAB ].device = new_device;
+  ports[ portAB ].mode = new_mode;
+  ports[ portAB ].state = 0;
   nextPortPoll = 0; // force an update the next time thru the loop
 
   // make sure we don't have any stuck keys...
   clearKeyboard();
 
   // and reset the values
-  Port_ClearVals( portNo );
+  Port_ClearVals( portAB );
 }
 
 
@@ -415,7 +441,7 @@ void Port_ReadA_DigitalJoy( int jType )
         | ( ( ports[kPortA].raw & kPortB3 ) ? 0 : kPortB2 );
 
     // re-do the transition sensing. 
-  ports[ kPortA ].raw = newRaw;
+    ports[ kPortA ].raw = newRaw;
     
     ports[ kPortA ].tohigh = 0;
     ports[ kPortA ].tolow = 0;
@@ -567,9 +593,48 @@ void Port_ReadAB_2800( int portAB )
   ports[ portAB ].analogY = kJoystickMid;
 }
 
+
 void Port_ReadAB_Kybrd( int portAB )
 {
-  // TBD KYBRD
+  char btns[14];
+  int i = 0;
+
+  // so we can catch transitions
+  ports[ portAB ].prev = ports[ portAB ].raw;
+
+  // first, read the whole keyboard into a buffer...
+  for( int c = 0 ; c < 3 ; c++ )
+  {
+    i = 0;
+    for( int r = 0 ; r < 4 ; r++ ) {
+      digitalWrite( portPinSets[portAB][ kb_row_pins[0] ], HIGH );
+      digitalWrite( portPinSets[portAB][ kb_row_pins[1] ], HIGH );
+      digitalWrite( portPinSets[portAB][ kb_row_pins[2] ], HIGH );
+      digitalWrite( portPinSets[portAB][ kb_row_pins[3] ], HIGH );
+
+      digitalWrite( portPinSets[portAB][ kb_row_pins[r] ], LOW );
+
+      btns[ (i) + c ] = 
+        (digitalRead( portPinSets[portAB][ kb_col_pins[c] ] ) == HIGH )
+        ? 0 : 1;
+
+        i=i+3;
+    }
+  }
+  // now, pack the button array into a masked value
+  int mask = 0x01;
+  ports[portAB].raw = 0;
+  for( i = 0 ; i < 12 ; i++ ) {
+    if( btns[i] ) {
+      ports[portAB].raw |= mask;
+    }
+    mask <<= 1;
+  }
+
+  // and finally, apply our transision sense
+  Port_TransitionSense( portAB );
+
+  //Serial.println( ports[portAB].raw | 0x8000, BIN );
 }
 
 ////////////////////////////////////////////////////////
@@ -822,14 +887,14 @@ void Port_Poll_ReadDevice( int portAB )
       Port_ReadAB_2800( portAB );
       break;
 
+    case( kPortDevice_Kybrd ): // Atari VCS Keyboard Controller
+      Port_ReadAB_Kybrd( portAB );
+      break;
+
     case( kPortDevice_AmiMouse ): //  Amiga Mouse
     case( kPortDevice_STMouse ): //  Atari ST Mouse
     case( kPortDevice_Driving ): //  Driving Controller
       // handled in the ISR.
-      break;
-
-    case( kPortDevice_Kybrd ): // Atari VCS Keyboard Controller
-      Port_ReadAB_Kybrd( portAB );
       break;
 
     case( kPortDevice_JoyCD32 ): // Commodore Amiga CD-32 
@@ -876,11 +941,16 @@ void Port_Send_Keypresses( int portAB, uint8_t mappingID, uint8_t unitNo )
 void Port_Send_Keypad( int portAB, uint8_t unitNo )
 {
   unsigned int bitMask = 0x01;
-
+  
   // just roll through the bits from 0x001 thru 0x800 and check for key downs and ups
   for( int bit = 0 ; bit < 12 ; bit++ ) {
-    if( ports[ portAB ].tohigh & bitMask ) HID_KeyDown( keymapLookups[ kJKM_Style_Kybrd][ bit ][ unitNo ] );
-    if( ports[ portAB ].tolow & bitMask ) HID_KeyUp( keymapLookups[ kJKM_Style_Kybrd ][ bit ][ unitNo ] );
+    if( ports[ portAB ].tohigh & bitMask ) {
+      HID_KeyDown( vcs_keyboard_codes[ bit ][ unitNo ] );
+    }
+
+    if( ports[ portAB ].tolow & bitMask ) {
+      HID_KeyUp( vcs_keyboard_codes[ bit ][ unitNo ] );
+    }
     bitMask <<= 1;
   }
 

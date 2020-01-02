@@ -292,7 +292,7 @@ It is built using the Arduino application.
 ## Reference 
 
 This directory contains all of the projects that this project
-was originally based on.  Much of these were in a thread on amiga.org.
+was originally based on.  Much of these were in a thread on arduino.cc forums.
 They only implement the Amiga serial protocol, but with the keyboard
 wired differently than our design.
 

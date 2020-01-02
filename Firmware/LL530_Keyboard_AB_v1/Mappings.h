@@ -93,13 +93,14 @@ extern struct KeymapXref xHelp[];
 #define kJKM_UnitA  (0)
 #define kJKM_UnitB  (1)
 
-extern uint8_t keymapLookups[7][7][2];
+extern uint8_t keymapLookups[4][7][2];
 // the layout of this table is:
 	// Array for keymap group (stella, wasd, etc)
 		// array for button (up,down,fire,etc)
 			// array of layer 0 or player 1 keycode to press/release
 
-
+// mappings for keyboard codes
+extern uint8_t vcs_keyboard_codes[12][2];
 
 ///////////////////////////////////////////////////////////////
 // HID code to Modifier table

@@ -239,7 +239,7 @@ struct KeymapXref xHelp[] {
 //    atari joystick -> HID USB Key presses
 //
 
-uint8_t keymapLookups[7][7][2] = {
+uint8_t keymapLookups[4][7][2] = {
   { /* 0: stella Joystick on keyboard
           UP
       LEFT  RIGHT    SPACE 5 4
@@ -305,20 +305,21 @@ uint8_t keymapLookups[7][7][2] = {
     { KEY_LEFTSHIFT,   KEY_RIGHTSHIFT },
     { KEY_LEFTALT,     KEY_RIGHTALT },
   },
-  { /* 4: Video Pad/Keyboard
+};
+
+
+/* 4: Video Pad/Keyboard
 
         1 2 3      8 9 0
         Q W E      I O P
         A S D      K L ;
         Z X C      , . /
-    */
-    { KEY_1, KEY_8 }, { KEY_2, KEY_9 }, { KEY_3, KEY_0 },
-    { KEY_Q, KEY_8 }, { KEY_W, KEY_O }, { KEY_E, KEY_P },
-  }, { 
-    // 5: second half of video pad/keyboard
-    { KEY_A, KEY_K }, { KEY_S, KEY_L }, { KEY_D, KEY_SEMICOLON },
+*/
+uint8_t vcs_keyboard_codes[12][2] = {
+    { KEY_1, KEY_8 },     { KEY_2, KEY_9 },   { KEY_3, KEY_0 },
+    { KEY_Q, KEY_8 },     { KEY_W, KEY_O },   { KEY_E, KEY_P },
+    { KEY_A, KEY_K },     { KEY_S, KEY_L },   { KEY_D, KEY_SEMICOLON },
     { KEY_Z, KEY_COMMA }, { KEY_X, KEY_DOT }, { KEY_C, KEY_SLASH },
-  },
 };
 
 
