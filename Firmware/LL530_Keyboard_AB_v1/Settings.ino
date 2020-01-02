@@ -135,10 +135,10 @@ void Settings_PrintDevice( int d )
     PDXT( kPortDevice_Joy2800, "Atari 2800/SVA2 Stick" );
     PDXT( kPortDevice_JoyCD32, "CD-32 Controller" );
     PDXT( kPortDevice_AmiMouse, "Amiga Mouse" );
-    PDXT( kPortDevice_STMouse, "Atari ST Mouse" );
-    PDXT( kPortDevice_Paddle, "Paddle" );
+    PDXT( kPortDevice_STMouse,  "Atari ST Mouse" );
+    PDXT( kPortDevice_Paddle,   "Paddle" );
     PDXT( kPortDevice_Driving, "Driving Controller" );
-    PDXT( kPortDevice_Kybrd, "Keyboard Controller" );
+    PDXT( kPortDevice_Kybrd,   "Keyboard Controller" );
     PDXT( kPortDevice_Disabled, "Disabled" );
     default:  Serial.print( F( "Unknown" ));
   }
@@ -278,7 +278,7 @@ void Settings_Poll()
               Serial.println( F( "Port? Q/a/b" ));
             } else {
               usr_cfg[0] = ch;
-              Serial.println( F( "Device? Q0/j723/asd/pk" ));
+              Serial.println( F( "Device? Q0/j72/asd/pk" ));
               serMode = kSerMode_Read_Device;
             }
             break;

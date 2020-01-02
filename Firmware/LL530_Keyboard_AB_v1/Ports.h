@@ -102,15 +102,16 @@ struct PORTINFO {
   char prevGrayX;
   char prevGrayY;
 
-  int analogX;
-  int analogY;
-  int minX, maxX;
-  int minY, maxY;
-
   // mouse deltas
   char deltaX;
   char deltaY;
-  
+
+  // analog for paddles
+  int16_t analogX;
+  int16_t analogY;
+  int16_t minX, maxX;
+  int16_t minY, maxY;
+
 } PORTINFO;
 
 extern unsigned long port_tick;
@@ -120,8 +121,8 @@ extern struct PORTINFO ports[2];
 // foregeround routines
 void Port_Setup();
 void Port_Poll();
-void Port_ClearInfo( unsigned char portNo );
+void Port_ClearInfo( unsigned char portAB );
 bool Port_HandleKeyPress( uint8_t amikey );
-void Port_SwitchMode( unsigned char portNo, unsigned char newMode );
+void Port_SwitchMode( unsigned char portAB, unsigned char newMode );
 
 #endif /* __PORTS_H__ */

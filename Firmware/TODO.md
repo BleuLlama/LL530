@@ -7,7 +7,6 @@ This file serves as my personal TODO feature and bugfix list.
 
 # Todo
 
-- 2800 controller testing
 - VCS Keyboard/Video Pad support
 - Strip out LED debug output from the code (or toggle mode)
 - LED support via serial
@@ -45,6 +44,12 @@ This file serves as my personal TODO feature and bugfix list.
 
 None yet.
 
+
 # DONE
 
-None yet.
+## 2020-01-01
+
+- Tested and fixed Paddle ranging
+- Paddles clear min/max when reselected
+- 2800 controller configuration is working (joystick + analog paddle)
+- CD-32 controller removed from menu

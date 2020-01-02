@@ -78,7 +78,7 @@ extern struct KeymapXref xHelp[];
 #define kJKM_Style_LibRetro  (1)
 #define kJKM_Style_Vi        (2)
 #define kJKM_Style_WASD      (3)
-#define kJKM_Style_VPad      (4)	/* Note: uses two slots. */
+#define kJKM_Style_Kybrd     (4)	/* Note: uses two slots. */
 
 // sub index for input mode
 #define kJKM_Up     (0)
