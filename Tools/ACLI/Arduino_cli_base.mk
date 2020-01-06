@@ -6,7 +6,8 @@
 #
 # Version History
 #
-LLVERS := "0.21 - 2019-12-05"
+LLVERS := "0.22 - 2020-01-05"
+#	0.22 - SL - 2020-01-05 - miniterm.py used for serial instead of screen
 #	0.21 - SL - 2019-12-05 - added 'test' for launching serial term
 #	0.20 - SL - 2019-12-02 - build or deploy if serial port is available
 #	0.01 - SL - 2019-12-01 - initial version
