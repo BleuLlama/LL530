@@ -28,8 +28,9 @@ CORE ?= arduino:avr
 FQBN ?= arduino:avr:leonardo
 
 # serial comms for testing
-SERCMD  ?= screen ${SERPORT} 115200
+#SERCMD  ?= screen ${SERPORT} 115200
 #SERCMD  ?= minicom -m -c on -s -b 115200 -D ${SERPORT}
+SERCMD ?= python -m serial.tools.miniterm ${SERPORT} 115200
 
 BUILDFNBASE := ${PROJDIR}.${subst :,.,${FQBN}}
 
@@ -71,20 +72,22 @@ build:
 .PHONY: sercheck
 sercheck:
 ifndef SERPORT
+	@echo ""
 	@${error "--- ERROR! Serial port is unavailable!"}
 endif
 
 .PHONY: deploy
 deploy: sercheck
+	@echo ""
 	@echo "+++ Deploying to ${SERPORT}..."
 	${ACLI} upload -p ${SERPORT} --fqbn ${FQBN} 
 
 
 .PHONY: connect
 connect: sercheck
+	@echo ""
 	@echo "+++ Starting up serial communications..."
 	@${SERCMD}
-	@reset
 	
 	
 
@@ -93,17 +96,9 @@ test: sercheck build deploy delay connect
 
 .PHONY: delay
 delay:
-	@echo "+++ Waiting for ${SERPORT} to come back..."
+	@#echo ""
+	@#echo "+++ Waiting for the serial port to return..."
 	${shell ${WAITCMD} "${SERPORT}" }
-
-.PHONY: delay-fixed-timeout
-delay-fixed-timeout:
-	@echo "+++ Waiting for 6 seconds..."
-	@for number in 6 5 4 3 2 1  ; do \
-    echo "Waiting...  $$number " ; \
-    sleep 1 ; \
-    done
-
 
 
 ################################################################################
