@@ -21,6 +21,3 @@ Please refer to the README.md file in the Firmware subdirectory for more info.
 The original code for the first version of the keyboard interface can be found in the Reference folder in the Firmware
 directory.  That code wasa retrieved from [the forums at Arduino.cc](http://forum.arduino.cc/index.php?topic=139358.0)
 
-
- ~/proj/sdl/LL530/Firmware/LL530_Keyboard_AB_v1 
-

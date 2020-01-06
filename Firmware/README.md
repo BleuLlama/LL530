@@ -22,8 +22,7 @@ currently using.
 - Arduino - version 1.8.10 - http://arduino.cc
 - arduino-cli - version 0.6.0 Commit: 3a08b07 - https://github.com/arduino/arduino-cli  (I used the install script)
 - GNU Make - version 3.81
-- Python - version 2.7.15 (for secondary helper code)
-- Screen - version 4.00.03 (for serial console connection)
+- Python - version 2.7.15 (for secondary helper code, serial terminal)
 - git - version 2.14.0
 
 Required Arduino Libraries:
@@ -49,7 +48,6 @@ run this makefile target to confirm that the required apps and such are installe
 	1. OK: arduino-cli Version: 0.6.0 Commit: 3a08b07
 	2. OK: Python 2.7.15
 	3. OKish: No Arduino detected.
-    4. OK: Screen version 4.00.03 (FAU) 23-Oct-06
 
 
 You can see here that I ran it without the LL530 being plugged in so it was not detected.
@@ -97,17 +95,21 @@ there's a target "help" to print out a summary of them all.
 
 ## Connecting via Serial port
 
-Configuring can be done via the serial console.  You will need to be sure to install
-'screen' to use this process. You can just connect via any other serial communications
-program.  It would seem that the Arduino somewhat ignores the serial baud rate, but
-I like to use 115200 baud anyway.
+Configuring can be done via the serial console.  
+By default this process uses pyserial's included miniterm. 
+
+- https://pyserial.readthedocs.io/en/latest/tools.html#miniterm
+
+You can also just connect via any other serial communications
+program.  It would seem that the Arduino somewhat ignores the serial
+baud rate, but I like to use 115200 baud anyway.
 
 Using the makefiles, you will just need to type:
 
 	# make connect
 
 It will use the arduino-cli tool and python tool to determine the correct serial port
-for the arduino, and connect to it using 'screen'.
+for the arduino, and connect to it using 'miniterm'.
 
 
 
@@ -199,16 +201,8 @@ outputting it as a USB HID Joystick.
 	#  Ticks: 67803
 	  Atari 2600 Joystick  ->  Unknown
 
-When you are done, you can just exit out of screen.  To do this:
-
-- press [ctrl]-[a] to enter screen's command mode
-- then press [k] to kill this window
-- then press [y] to confirm the exiting
-
-Occasionally, screen loses its mind as you exit and will decide to make it so 
-that you can't see what you're typing. If this happens, in your terminal window
-just type "reset" and hit return to reset the termcap mode.
-
+When you are done, you can just exit out of miniterm.  Just
+press [ctrl]-[closebracket]  CTRL-]
 
 
 # Key macros
@@ -266,19 +260,10 @@ so on.
 
 ## LL530_Keyboard_AB_v1
 
-This is the primary development directory.  It contains the most recent
-Keyboard + Port A + Port B interface.  It uses the ACLI directory's content
-to build in a terminal window.  See above for build information
-
-
-## ACLI
-
-This directory contains support files for building Arduino firmware 
-packages using the arduino-cli application.  It adds some helpful
-makefile targets, and requires python 2.7+, as well as bash for the 
-secondary tools.  To connect to the device via serial console, you
-will also need to install 'screen'.
-
+This is the primary development directory.  It contains the most
+recent Keyboard + Port A + Port B interface.  It uses the /Tools/ACLI
+directory's content to build in a terminal window.  See above for
+build information
 
 
 ## LL530_Keyboard

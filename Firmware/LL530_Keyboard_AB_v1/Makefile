@@ -1,6 +1,6 @@
 
 # this is where the core makefile stuff is
-ACLI_DIR := ../ACLI
+ACLI_DIR := ../../Tools/ACLI
 
 # include the default configurations
 include ${ACLI_DIR}/Arduino_Config.mk
