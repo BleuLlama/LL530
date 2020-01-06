@@ -43,10 +43,12 @@ void Led_Pulse( void )
 {
   for( int i = 0 ; i < 128 ; i++ ) {
     analogWrite( kLED_Red, i*2 );
+    analogWrite( kLED_Green, 255-(i*2) );
     delay( 5 );
   }
   for( int i = 128 ; i >= 0 ; i -- ) {
     analogWrite( kLED_Red, i*2 );
+    analogWrite( kLED_Green, 255-(i*2) );
     delay( 5 );
   }
 }
@@ -58,10 +60,12 @@ void Led_Setup()
   pinMode( kLED_Green, OUTPUT );
 
   //Led_Pulse();
+
   Led_Flash( 1 );
   GREEN_OFF();
+  RED_OFF();
+
 #ifdef kDebugOnLEDs
-  RED_ON();
 #endif /* kDebugOnLEDs */
 }
 

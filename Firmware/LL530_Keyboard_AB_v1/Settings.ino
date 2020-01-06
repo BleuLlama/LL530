@@ -205,6 +205,29 @@ void Settings_Show()
 
 }
 
+void Settings_ApplyLed( char which, char mode )
+{
+  Serial.print( "LED " );
+  Serial.print( which );
+  
+  if( which == 'r' ) {
+    switch( mode ) {
+      case( 'o' ): RED_OFF_SLOW(); 
+  Serial.println( "OFF" );  break;
+      case( 'd' ): RED_DIM(); 
+  Serial.println( "DIM" );          break;
+      case( 'b' ): RED_ON_SLOW(); 
+  Serial.println( "BRIGHT" );      break;
+    }
+  } else if( which == 'g' ) {
+    switch( mode ) {
+      case( 'o' ):  GREEN_OFF_SLOW(); break;
+      case( 'd' ):  GREEN_DIM();      break;
+      case( 'b' ):  GREEN_ON_SLOW();  break;
+    }
+  }
+}
+
 
 char isChInStr( char ch, char * str )
 {
@@ -217,17 +240,24 @@ char isChInStr( char ch, char * str )
 }
 
 
-#define kSerMode_Idle (0)
-#define kSerMode_Read_Port (1)
-#define kSerMode_Read_Device (2)
-#define kSerMode_Read_Mode (3)
-#define kSerMode_Apply (4)
+#define kSerMode_Idle         (0)
+#define kSerMode_Read_Port    (1)
+#define kSerMode_Read_Device  (2)
+#define kSerMode_Read_Mode    (3)
+#define kSerMode_Apply        (4)
+
+#define kSerMode_LED_Set      (10)
+#define kSerMode_LED_Choose   (11)
+#define kSerMode_LED_Red      (12)
+#define kSerMode_LED_Green    (13)
 
 unsigned char ser_ok = false;
 unsigned long serTimeout = 0;
 unsigned char serMode = kSerMode_Idle;
 //                        0123456
 char usr_cfg[8] = "0: 0->0";
+
+char usr_led[3] = "00";
 
 void Settings_Poll()
 {
@@ -258,10 +288,13 @@ void Settings_Poll()
       if( serMode == kSerMode_Idle ) {
         switch( ch ) {
           case( '?' ):
-            Serial.println( F("[p]ort [s]how [e]eprom" /* [k]eyboard  */) );
+            Serial.println( F("[p]ort [s]how [l]ed [e]eprom" /* [k]eyboard  */) );
             break;
+
           case( 's' ): Settings_Show(); break;
+
           case( 'e' ): Settings_Dump( false ); break;
+
           case( 'p' ): 
             serMode = kSerMode_Read_Port;
             usr_cfg[0] = '?';
@@ -269,10 +302,41 @@ void Settings_Poll()
             usr_cfg[6] = '?';
             Serial.println( F( "Port? Q/a/b" ));
             break;
+
+          case( 'l' ):
+            serMode = kSerMode_LED_Set;
+            usr_led[0] = '?';
+            usr_led[1] = '?';
+
+            Serial.println( F( "Color? Q/r/g" ));
+            break;
         }
       } else {
 
         switch( serMode ) {
+          /* LED settings. */
+
+          case( kSerMode_LED_Set ):
+            if( !isChInStr( ch, "Qrg" )) {
+              Serial.println( F( "Color? Q/r/g" ));
+            } else {
+              usr_led[0] = ch;
+              Serial.println( F( "Value? Q/odb" ));
+              serMode = kSerMode_LED_Choose;
+            }
+            break;
+          case( kSerMode_LED_Choose ):
+            if( !isChInStr( ch, "Qodbsf" )) {
+              Serial.println( F( "Value? Q/odb" ));
+            } else {
+              usr_led[1] = ch;
+              serMode = kSerMode_Idle;
+              Settings_ApplyLed( usr_led[0], usr_led[1] );
+            }
+            break;
+
+
+          /* Port settings. */
           case( kSerMode_Read_Port ):
             if( !isChInStr( ch, "Qab" )) {
               Serial.println( F( "Port? Q/a/b" ));

@@ -30,21 +30,31 @@
 
 #include "Platform.h"
 
-#define RED_ON()    (LEDPORT &= ~BITMASK_A500RED)
-#define RED_OFF()   (LEDPORT |= BITMASK_A500RED)
+#define RED_ON_FAST()    (LEDPORT &= ~BITMASK_A500RED)
+#define RED_OFF_FAST()   (LEDPORT |= BITMASK_A500RED)
 
-#define GREEN_ON()    (LEDPORT &= ~BITMASK_A500GRN)
-#define GREEN_OFF()   (LEDPORT |= BITMASK_A500GRN)
+#define GREEN_ON_FAST()    (LEDPORT &= ~BITMASK_A500GRN)
+#define GREEN_OFF_FAST()   (LEDPORT |= BITMASK_A500GRN)
 
 
 #define  RED_ON_SLOW()      digitalWrite( kLED_Red, LOW )
 #define  RED_OFF_SLOW()     digitalWrite( kLED_Red, HIGH )
-#define  RED_DIM()          analogWrite( kLED_Red, 200 )
-
 
 #define  GREEN_ON_SLOW()    digitalWrite( kLED_Green, LOW )
 #define  GREEN_OFF_SLOW()   digitalWrite( kLED_Green, HIGH )
-#define  GREEN_DIM()        analogWrite( kLED_Green, 200 )
+
+
+#define  RED_DIM()          analogWrite( kLED_Red, 250 )
+#define  RED_BRIGHT()       analogWrite( kLED_Red, 0 )
+
+#define  GREEN_DIM()        analogWrite( kLED_Green, 250 )
+#define  GREEN_BRIGHT()     analogWrite( kLED_Green, 0 )
+
+
+#define  RED_ON()       	RED_ON_SLOW()
+#define  RED_OFF()          RED_OFF_SLOW()
+#define  GREEN_ON()     	GREEN_ON_SLOW()
+#define  GREEN_OFF()        GREEN_OFF_SLOW()
 
 
 #define kFlashDuration (100)
