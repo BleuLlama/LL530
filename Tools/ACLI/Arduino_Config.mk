@@ -11,8 +11,6 @@ SEARCHWORD := Leonardo
 #   something like: /dev/cu.usbmodemHIDFGHIDID1
 SERPORT := ${shell python ${MKFILESDIR}/ach.py ${SEARCHWORD} port}
 
-
-
 # you may want to override these...
 
 # Path to the arduino-cli command (if not in your shell path)
@@ -33,3 +31,8 @@ FQBN := ${shell python ${MKFILESDIR}/ach.py ${SEARCHWORD} fqvn}
 # command to use to wait for the serial port to return
 # parameter 1 should be the serial port.
 WAITCMD := ${MKFILESDIR}/filewait.sh
+
+
+# parameter 2 of the wait command should be optional number of 
+# forced seconds to wait. Some boards require this.
+MINWAITSECONDS := 0

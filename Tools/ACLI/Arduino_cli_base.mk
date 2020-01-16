@@ -6,7 +6,8 @@
 #
 # Version History
 #
-LLVERS := "0.22 - 2020-01-05"
+LLVERS := "0.23 - 2020-01-15"
+#	0.23 - SL - 2020-01-15 - MINWAITSECONDS support
 #	0.22 - SL - 2020-01-05 - miniterm.py used for serial instead of screen
 #	0.21 - SL - 2019-12-05 - added 'test' for launching serial term
 #	0.20 - SL - 2019-12-02 - build or deploy if serial port is available
@@ -20,6 +21,7 @@ PROJDIR ?= ${shell basename ${shell pwd}}
 # expexted values.  If they're not set, these are reasonable start points
 SERPORT ?= /dev/Serial0
 ACLI ?= arduino-cli
+MINWAITSECONDS ?= 0
 
 # command to use to wait for the serial port to return
 # parameter 1 should be the serial port.
@@ -99,7 +101,7 @@ test: sercheck build deploy delay connect
 delay:
 	@#echo ""
 	@#echo "+++ Waiting for the serial port to return..."
-	${shell ${WAITCMD} "${SERPORT}" }
+	${WAITCMD} "${SERPORT}" ${MINWAITSECONDS}
 
 
 ################################################################################
@@ -153,11 +155,11 @@ show:
 	@echo "       FN_ELF = ${FN_ELF}"
 	@echo "       FN_HEX = ${FN_HEX}"
 	@echo "   MKFILESDIR = ${MKFILESDIR}"
+	@echo "    MINWAITS. = ${MINWAITSECONDS}"
 
 
 
 VERSION_PYTHON := ${shell python --version 2>&1}
-VERSION_SCREEN := ${shell screen --version}
 VERSION_ACLI   := ${shell ${ACLI} version}
 
 .PHONY: amiready
@@ -178,11 +180,16 @@ ifndef SERPORT
 else
 	@echo "3. OK: Arduino detected on ${SERPORT}"
 endif
-ifeq (${shell which screen},)
-	@echo "4. Notice: Tool 'screen' not found in path..."
-else
-	@echo "4. OK: ${VERSION_SCREEN}"
-endif
+
+
+################################################################################
+# some targets just for me because reasons
+
+.PHONY: editor
+editor:
+	@open -a Sublime\ Text .
+
+
 
 ################################################################################
 # These are just for reference...
