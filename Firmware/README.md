@@ -138,6 +138,7 @@ and features over the Arduino-supplied version
 
 
 7. Build it!
+
 ```
 # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
 # make
@@ -178,31 +179,38 @@ refer to any changelog notes for any changes to the procedure, etc.
 On Raspberry Pi, miniterm should already be installed along with
 python 2 and pyton 3.  To check if it is, type this command:
 
-    # ls -l /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
+```
+# ls -l /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
+```
 
 It should show something like:
 
-    -rw-r--r-- 1 root 33881 Sep 22  2016 /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
+```
+-rw-r--r-- 1 root 33881 Sep 22  2016 /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
+```
 
 Your system probably also has python 3 installed so the path might
 be something like this instead:
 
-    # ls -l /usr/lib/python3/dist-packages/serial/tools/miniterm.py
-
+```
+# ls -l /usr/lib/python3/dist-packages/serial/tools/miniterm.py
+```
 
 ## Notes about determining your LL530 serial port
 
 And to find out where your LL530 is connected, you can use the list_ports 
 tool provided by python's serial library like so:
 
-    # python /usr/lib/python2.7/dist-packages/serial/tools/list_ports.py -v
-    /dev/ttyACM0        
-        desc: Arduino Leonardo
-        hwid: USB VID:PID=2341:8036 SER=HIDFGHIDID LOCATION=1-1
-    /dev/ttyAMA0        
-        desc: ttyAMA0
-        hwid: 20201000.serial
-    2 ports found
+```
+# python /usr/lib/python2.7/dist-packages/serial/tools/list_ports.py -v
+/dev/ttyACM0        
+    desc: Arduino Leonardo
+    hwid: USB VID:PID=2341:8036 SER=HIDFGHIDID LOCATION=1-1
+/dev/ttyAMA0        
+    desc: ttyAMA0
+    hwid: 20201000.serial
+2 ports found
+```
 
 Showing that your LL530 (Arduino Leonardo) is at /dev/ttyACM0
 
@@ -210,15 +218,16 @@ Showing that your LL530 (Arduino Leonardo) is at /dev/ttyACM0
 For what it's worth, my Pi Zero has both python 2.7 and 3.5 installed, and 
 I don't remember installing either. ;)
 
-    # python --version
-    Python 2.7.13
+```
+# python --version
+Python 2.7.13
 
-    # python2 --version
-    Python 2.7.13
+# python2 --version
+Python 2.7.13
 
-    # python3 --version
-    Python 3.5.3
-
+# python3 --version
+Python 3.5.3
+```
 
 ## Build and Deploy
 
@@ -226,29 +235,32 @@ This section will explain the very simple process of building and deploying to t
 
 Once you're in the "LL530_Keyboard_AB_v1" directory, type:
 
-    # make
+```
+# make
 
-    +++ Building project files...
-    arduino-cli compile --fqbn arduino:avr:leonardo
-    Sketch uses 16008 bytes (55%) of program storage space. Maximum is 28672 bytes.
-    Global variables use 1111 bytes (43%) of dynamic memory, leaving 1449 bytes for local variables. Maximum is 2560 bytes.
-    +++ Deploying to /dev/cu.usbmodemHIDFGHIDID1...
-    arduino-cli upload -p /dev/cu.usbmodemHIDFGHIDID1 --fqbn arduino:avr:leonardo 
-    Connecting to programmer: .
-    Found programmer: Id = "CATERIN"; type = S
-        Software Version = 1.0; No Hardware Version given.
-    Programmer supports auto addr increment.
-    Programmer supports buffered memory access with buffersize=128 bytes.
-    Programmer supports the following devices:
-        Device code: 0x44
++++ Building project files...
+arduino-cli compile --fqbn arduino:avr:leonardo
+Sketch uses 16008 bytes (55%) of program storage space. Maximum is 28672 bytes.
+Global variables use 1111 bytes (43%) of dynamic memory, leaving 1449 bytes for local variables. Maximum is 2560 bytes.
++++ Deploying to /dev/cu.usbmodemHIDFGHIDID1...
+arduino-cli upload -p /dev/cu.usbmodemHIDFGHIDID1 --fqbn arduino:avr:leonardo 
+Connecting to programmer: .
+Found programmer: Id = "CATERIN"; type = S
+    Software Version = 1.0; No Hardware Version given.
+Programmer supports auto addr increment.
+Programmer supports buffered memory access with buffersize=128 bytes.
+Programmer supports the following devices:
+    Device code: 0x44
+```
 
 That's it.  It's installed on the device.
 
 There are a bunch of other makefile targets that might be useful (or not) to you, 
 there's a target "help" to print out a summary of them all.
 
-    # make help
-
+```
+# make help
+```
     
 
 # Configuration
@@ -267,7 +279,9 @@ baud rate, but I like to use 115200 baud anyway.
 
 Using the makefiles, you will just need to type:
 
-    # make connect
+```
+# make connect
+```
 
 It will use the arduino-cli tool and python tool to determine the correct serial port
 for the arduino, and connect to it using 'miniterm'.
@@ -278,22 +292,27 @@ for the arduino, and connect to it using 'miniterm'.
 
 You should be able to press [?] to show available commands.
 
-    [p]ort [s]how [e]eprom
+```
+[p]ort [s]how [e]eprom
+```
 
 This is showing that you can press 'p' to configure the ports, 's' to show the current
 configuration and 'e' to show values stored in the LL530's EEPROM.
 
 Pressing 's' may show something similar to this: (it may be different)
 
-    Port A:
-      Amiga Mouse  ->  HID Mouse
-    Port B:
-      Atari 2600 Joystick  ->  HID Joystick P1
-
+```
+Port A:
+  Amiga Mouse  ->  HID Mouse
+Port B:
+  Atari 2600 Joystick  ->  HID Joystick P1
+```
 
 Pressing 'p', will show the prompt:
 
-    Port? Q/a/b
+```
+Port? Q/a/b
+```
 
 This is showing that you can press uppercase q 'Q' to quit the menu, or select port 'a' or port 'b'. 
 Port B is closest to the DIN connector, Port A is furthest.  They are labelled on the board and
@@ -302,7 +321,9 @@ in the schematic.
 Next it will show you a device list to pick from.  This is the device you have plugged into
 that port.
 
-    Device? Q0/j723/asd/pk
+```
+Device? Q0/j723/asd/pk
+```
 
 These options are:
 
@@ -324,7 +345,9 @@ These options are:
 Next you select the mode that this port will be running in... that is to say, what
 output it is generating:
 
-    Mode? Q0/jJ/m/vw/sSrRkK
+```
+Mode? Q0/jJ/m/vw/sSrRkK
+```
 
 These options are:
 
@@ -348,19 +371,21 @@ Once you pick your choice, you may see an output like as follows.  For this exam
 key sequence: "pajj" was entered to set up port A for reading an Atari 2600 joystick, and
 outputting it as a USB HID Joystick.
 
-    Cfg: a: j->j
+```
+Cfg: a: j->j
 
-    Port A:
-    #  Raw: 103
-    #  State: 0
-    #  Ticks: 67797
-      Atari 2600 Joystick  ->  Joystick - P1
+Port A:
+#  Raw: 103
+#  State: 0
+#  Ticks: 67797
+  Atari 2600 Joystick  ->  Joystick - P1
 
-    Port B:
-    #  Raw: 48
-    #  State: 0
-    #  Ticks: 67803
-      Atari 2600 Joystick  ->  Unknown
+Port B:
+#  Raw: 48
+#  State: 0
+#  Ticks: 67803
+  Atari 2600 Joystick  ->  Unknown
+```
 
 When you are done, you can just exit out of miniterm.  Just
 press [ctrl]-[closebracket]  CTRL-]
@@ -382,6 +407,7 @@ so on.
 
 [HELP] + ...
 
+```
     [F1]    => F11
     [F2]    => F12
     [F3]    => F13
@@ -413,7 +439,7 @@ so on.
     [KP-+]  => Volume Up
     [KP--]  => Volume Down
     [KP-En] => Mute Toggle
-
+```
 
 ----
 
