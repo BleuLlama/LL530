@@ -75,56 +75,73 @@ the code to the LL530!
 
 This process will install the arduino tools as well as the source tree.
 
- 1. Start out by adjusting your path and making a directory for all of this
+1. Start out by adjusting your path and making a directory for all of this
 stuff.
 
-    # cd ~/
-    # echo 'PATH="$HOME/ll530/bin:$PATH"' >> .bashrc
-    # . .bashrc
-    # mkdir ll530
-    # cd ~/ll530
+```
+# cd ~/
+# echo 'PATH="$HOME/ll530/bin:$PATH"' >> .bashrc
+# . .bashrc
+# mkdir ll530
+# cd ~/ll530
+```
 
- 2. To install the arduino IDE on your Raspberry Pi, either use the system
+
+2. To install the arduino IDE on your Raspberry Pi, either use the system
 GUI to install it or follow these directions to get it installed via
 command line:
     
-    # sudo apt-get install arduino -y
+```
+# sudo apt-get install arduino -y
+```
 
- 3. Next, install the Arduino-cli utility using the following command line. This
+3. Next, install the Arduino-cli utility using the following command line. This
 is taken right from the arduino-cli installation instructions.
 
-    # curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
- 4. Update it and install the libraries needed. Notice that each step
+```
+# curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+```
+
+
+4. Update it and install the libraries needed. Notice that each step
 of this may take a few minutes each, without giving feedback.. 
 especially on a Pi Zero. 
 
-    # arduino-cli core update-index
 
-    # arduino-cli core install arduino:avr
+```
+# arduino-cli core update-index
 
-    # arduino-cli lib install Keyboard
-    # arduino-cli lib install Mouse
+# arduino-cli core install arduino:avr
 
- 5. Grab the ArduinoJoystickLibrary.  This offers more flexibility
+# arduino-cli lib install Keyboard
+# arduino-cli lib install Mouse
+```
+
+
+5. Grab the ArduinoJoystickLibrary.  This offers more flexibility
 and features over the Arduino-supplied version
 
-    # cd ~/ll530
-    # git clone https://github.com/MHeironimus/ArduinoJoystickLibrary.git
-    # cd ArduinoJoystickLibrary/
-    # sh deploy.sh
+``` 
+# cd ~/ll530
+# git clone https://github.com/MHeironimus/ArduinoJoystickLibrary.git
+# cd ArduinoJoystickLibrary/
+# sh deploy.sh
+```
+
+6. Grab the source tree for this project
+
+```
+# cd ~/ll530
+# git clone git@github.com:BleuLlama/LL530.git
+```
 
 
- 6. Grab the source tree for this project
-
-    # cd ~/ll530
-    # git clone git@github.com:BleuLlama/LL530.git
-
-
- 7. Build it!
-
-    # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
-    # make
+7. Build it!
+```
+# cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
+# make
+```
 
 
 This should build the firmware and deploy it to your LL530!
@@ -134,7 +151,9 @@ device "/dev/ttyACM0": Permission denied", then you will need to
 adjust permissions of the serial port.  In this case, the serial
 port is "/dev/ttyACM0", use that in the following line:
 
-    # sudo chmod a+rw /dev/ttyACM0
+```
+# sudo chmod a+rw /dev/ttyACM0
+```
 
 And 'make' it again.
 
@@ -146,10 +165,12 @@ acquired by getting the latest version using 'git', and deploying
 it to the decice using the same 'make' process as above.  Please
 refer to any changelog notes for any changes to the procedure, etc.
 
-    # cd ~/ll530/LL530
-    # git pull
-    # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
-    # make
+```
+# cd ~/ll530/LL530
+# git pull
+# cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
+# make
+```
 
 
 ## Notes about Miniterm
