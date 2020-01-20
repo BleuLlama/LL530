@@ -75,7 +75,7 @@ the code to the LL530!
 
 This process will install the arduino tools as well as the source tree.
 
-1. Start out by adjusting your path and making a directory for all of this
+ 1. Start out by adjusting your path and making a directory for all of this
 stuff.
 
     # cd ~/
@@ -84,18 +84,18 @@ stuff.
     # mkdir ll530
     # cd ~/ll530
 
-2. To install the arduino IDE on your Raspberry Pi, either use the system
+ 2. To install the arduino IDE on your Raspberry Pi, either use the system
 GUI to install it or follow these directions to get it installed via
 command line:
     
     # sudo apt-get install arduino -y
 
-3. Next, install the Arduino-cli utility using the following command line. This
+ 3. Next, install the Arduino-cli utility using the following command line. This
 is taken right from the arduino-cli installation instructions.
 
     # curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
-4. Update it and install the libraries needed. Notice that each step
+ 4. Update it and install the libraries needed. Notice that each step
 of this may take a few minutes each, without giving feedback.. 
 especially on a Pi Zero. 
 
@@ -106,7 +106,7 @@ especially on a Pi Zero.
     # arduino-cli lib install Keyboard
     # arduino-cli lib install Mouse
 
-5. Grab the ArduinoJoystickLibrary.  This offers more flexibility
+ 5. Grab the ArduinoJoystickLibrary.  This offers more flexibility
 and features over the Arduino-supplied version
 
     # cd ~/ll530
@@ -115,13 +115,13 @@ and features over the Arduino-supplied version
     # sh deploy.sh
 
 
-6. Grab the source tree for this project
+ 6. Grab the source tree for this project
 
     # cd ~/ll530
     # git clone git@github.com:BleuLlama/LL530.git
 
 
-7. Build it!
+ 7. Build it!
 
     # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
     # make
