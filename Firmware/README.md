@@ -95,9 +95,67 @@ is taken right from the arduino-cli installation instructions.
 
     # curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
+4. Update it and install the libraries needed. Notice that each step
+of this may take a few minutes each, without giving feedback.. 
+especially on a Pi Zero. 
 
-4. On Raspberry Pi, miniterm may already be installed by default.  To 
-check if it is, type this command:
+    # arduino-cli core update-index
+
+    # arduino-cli core install arduino:avr
+
+    # arduino-cli lib install Keyboard
+    # arduino-cli lib install Mouse
+
+5. Grab the ArduinoJoystickLibrary.  This offers more flexibility
+and features over the Arduino-supplied version
+
+    # cd ~/ll530
+    # git clone https://github.com/MHeironimus/ArduinoJoystickLibrary.git
+    # cd ArduinoJoystickLibrary/
+    # sh deploy.sh
+
+
+6. Grab the source tree for this project
+
+    # cd ~/ll530
+    # git clone git@github.com:BleuLlama/LL530.git
+
+
+7. Build it!
+
+    # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
+    # make
+
+
+This should build the firmware and deploy it to your LL530!
+
+If you see an error like "avrdude: ser_open(): can't open 
+device "/dev/ttyACM0": Permission denied", then you will need to 
+adjust permissions of the serial port.  In this case, the serial
+port is "/dev/ttyACM0", use that in the following line:
+
+    # sudo chmod a+rw /dev/ttyACM0
+
+And 'make' it again.
+
+
+## Future updates
+
+Unless the process changes, future updates will be able to be 
+acquired by getting the latest version using 'git', and deploying
+it to the decice using the same 'make' process as above.  Please
+refer to any changelog notes for any changes to the procedure, etc.
+
+    # cd ~/ll530/LL530
+    # git pull
+    # cd ~/ll530/LL530/Firmware/LL530_Keyboard_AB_v1
+    # make
+
+
+## Notes about Miniterm
+
+On Raspberry Pi, miniterm should already be installed along with
+python 2 and pyton 3.  To check if it is, type this command:
 
     # ls -l /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
 
@@ -105,12 +163,15 @@ It should show something like:
 
     -rw-r--r-- 1 root 33881 Sep 22  2016 /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
 
-Your system may have python 3 installed so the path might be something
-like this instead:
+Your system probably also has python 3 installed so the path might
+be something like this instead:
 
     # ls -l /usr/lib/python3/dist-packages/serial/tools/miniterm.py
 
-5. And to find out where your LL530 is connected, you can use the list_ports 
+
+## Notes about determining your LL530 serial port
+
+And to find out where your LL530 is connected, you can use the list_ports 
 tool provided by python's serial library like so:
 
     # python /usr/lib/python2.7/dist-packages/serial/tools/list_ports.py -v
@@ -124,9 +185,6 @@ tool provided by python's serial library like so:
 
 Showing that your LL530 (Arduino Leonardo) is at /dev/ttyACM0
 
-6. Grab the latest version of this project:
-
-    TBD
 
 For what it's worth, my Pi Zero has both python 2.7 and 3.5 installed, and 
 I don't remember installing either. ;)
