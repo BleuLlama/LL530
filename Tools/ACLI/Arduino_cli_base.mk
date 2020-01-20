@@ -33,7 +33,10 @@ FQBN ?= arduino:avr:leonardo
 # serial comms for testing
 #SERCMD  ?= screen ${SERPORT} 115200
 #SERCMD  ?= minicom -m -c on -s -b 115200 -D ${SERPORT}
-SERCMD ?= python -m serial.tools.miniterm ${SERPORT} 115200
+MINITERM_PY ?= /usr/lib/python2.7/dist-packages/serial/tools/miniterm.py
+SERCMD ?= python ${MINITERM_PY} ${SERPORT} 115200
+
+
 
 BUILDFNBASE := ${PROJDIR}.${subst :,.,${FQBN}}
 

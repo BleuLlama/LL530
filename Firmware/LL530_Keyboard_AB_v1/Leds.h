@@ -44,10 +44,10 @@
 #define  GREEN_OFF_SLOW()   digitalWrite( kLED_Green, HIGH )
 
 
-#define  RED_DIM()          analogWrite( kLED_Red, 250 )
+#define  RED_DIM()          analogWrite( kLED_Red, 200 )
 #define  RED_BRIGHT()       analogWrite( kLED_Red, 0 )
 
-#define  GREEN_DIM()        analogWrite( kLED_Green, 250 )
+#define  GREEN_DIM()        analogWrite( kLED_Green, 200 )
 #define  GREEN_BRIGHT()     analogWrite( kLED_Green, 0 )
 
 

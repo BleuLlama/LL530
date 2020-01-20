@@ -8,7 +8,6 @@ timeout=10
 echo "waiting for -e $1.. " > /dev/stderr
 
 minsleep=$2
-echo "$minsleep"
 
 while [ $minsleep != 0 ]
 do
