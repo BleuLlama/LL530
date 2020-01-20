@@ -144,7 +144,6 @@ and features over the Arduino-supplied version
 # make
 ```
 
-
 This should build the firmware and deploy it to your LL530!
 
 If you see an error like "avrdude: ser_open(): can't open 
@@ -158,6 +157,9 @@ port is "/dev/ttyACM0", use that in the following line:
 
 And 'make' it again.
 
+```
+# make
+```
 
 ## Future updates
 
