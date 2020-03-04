@@ -153,6 +153,7 @@ port is "/dev/ttyACM0", use that in the following line:
 
 ```
 # sudo chmod a+rw /dev/ttyACM0
+# sudo chmod a+rw /dev/ttyAMA0
 ```
 
 And 'make' it again.
@@ -214,21 +215,21 @@ tool provided by python's serial library like so:
 2 ports found
 ```
 
+
 Showing that your LL530 (Arduino Leonardo) is at /dev/ttyACM0
+If you see an entry like "20201000.serial" above, that would be your
+Raspberry Pi's serial port on its GPIO header.
 
-
-For what it's worth, my Pi Zero has both python 2.7 and 3.5 installed, and 
-I don't remember installing either. ;)
 
 ```
 # python --version
-Python 2.7.13
+Python 2.7.16
 
 # python2 --version
-Python 2.7.13
+Python 2.7.16
 
 # python3 --version
-Python 3.5.3
+Python 3.7.3
 ```
 
 ## Build and Deploy

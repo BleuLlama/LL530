@@ -46,12 +46,12 @@ void Settings_Setup()
     EEPROM.update( 3, '1' );
 
     // next the default values
-    EEPROM.update( kSetting_PortADevice, kPortDevice_AmiMouse );
     EEPROM.update( kSetting_PortAMode, kPortMode_Mouse );
+    EEPROM.update( kSetting_PortADevice, kPortDevice_AmiMouse );
     EEPROM.update( kSetting_PortAState, 0 );
 
-    EEPROM.update( kSetting_PortBDevice, kPortDevice_Joy2600 );
     EEPROM.update( kSetting_PortBMode, kPortMode_Joystick2 );
+    EEPROM.update( kSetting_PortBDevice, kPortDevice_Joy2600 );
     EEPROM.update( kSetting_PortBState, 0 );
   }
   /*
@@ -85,11 +85,11 @@ void Settings_Dump( unsigned char doTypeout )
 {
   char buf[32];
 
-  sprintf( buf, "# Set:  %02x %02x %02x %02x\n",
+  sprintf( buf, "# Set:  %02x %02x %02x %02x",
            EEPROM.read( 0 ), EEPROM.read( 1 ), EEPROM.read( 2 ), EEPROM.read( 3 ) );
   if( doTypeout ) TypeStuff( buf ); else Serial.println( buf );
 
-  sprintf( buf, "#  A  %02x %02x %02x\n",
+  sprintf( buf, "#  A  %02x %02x %02x",
       Setting_Get( kSetting_PortAMode ),
       Setting_Get( kSetting_PortADevice ), 
       Setting_Get( kSetting_PortAState )
@@ -101,12 +101,26 @@ void Settings_Dump( unsigned char doTypeout )
       Setting_Get( kSetting_PortBDevice ), 
       Setting_Get( kSetting_PortBState ));
   if( doTypeout ) TypeStuff( buf ); else Serial.println( buf );
+
+
+  for( int i=0 ; i < 64 ; i++ ) {
+    if( 0 == ( i % 16 )) {
+      Serial.println();
+
+    } else if( 0 == (i % 8 ) ) {
+      Serial.print( "   " );
+    }
+
+    sprintf( buf, "%02x ", EEPROM.read( i ) );
+    Serial.print( buf );
+  }
+  Serial.println();
 }
 
 
 void Setting_Set( int idx, unsigned char value )
 {
-  EEPROM.update( idx, value );
+  EEPROM.write( idx, value );
 }
 
 unsigned char Setting_Get( int idx )
@@ -127,7 +141,7 @@ char Options_Devices[] = {
 #define PDXT( D, S )\
   case( D ): Serial.print( F( S )); break;
 
-void Settings_PrintDevice( int d )
+void Settings_PrintDevice( unsigned char d )
 {
   switch( d ) {
     PDXT( kPortDevice_Joy2600, "Atari 2600 Joystick" );
@@ -140,7 +154,10 @@ void Settings_PrintDevice( int d )
     PDXT( kPortDevice_Driving, "Driving Controller" );
     PDXT( kPortDevice_Kybrd,   "Keyboard Controller" );
     PDXT( kPortDevice_Disabled, "Disabled" );
-    default:  Serial.print( F( "Unknown" ));
+    default:
+      Serial.print( d, HEX ); 
+      Serial.print( F( "(Unknown)" ));
+      break;
   }
 }
 
@@ -157,7 +174,7 @@ char Options_Outputs[] = {
 };
 
 
-void Settings_PrintOutput( int d )
+void Settings_PrintOutput( unsigned char d )
 {
   switch( d ) {
     PDXT( kPortMode_Mouse, "HID Mouse" );
@@ -173,7 +190,10 @@ void Settings_PrintOutput( int d )
     PDXT( kPortMode_Kyb_Keyboard1, "Keyboard - Stella - P1 Left" );
     PDXT( kPortMode_Kyb_Keyboard2, "Keyboard - Stella - P2 Right" );
     PDXT( kPortMode_Disabled, "Disabled" );
-    default:  Serial.print( F( "Unknown" ));
+    default:
+      Serial.print( d, HEX ); 
+      Serial.print( F( "(Unknown)" ));
+      break;
   }
 }
 
@@ -196,7 +216,9 @@ void Settings_Show()
     Serial.print( device, HEX );
     Serial.print( " " );
     Settings_PrintDevice( device );
+
     Serial.print( F( "  ->  " ) );
+
     Serial.print( mode, HEX );
     Serial.print( " " );
     Settings_PrintOutput( mode );

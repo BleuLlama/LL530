@@ -30,7 +30,7 @@
 
 
 // how many ms to wait between joystick/mouse polling
-#define kPollDelay  ( 50 )
+#define kPollDelay  ( 40 )
 
 /*
 
@@ -1124,13 +1124,13 @@ ISR( TIMER1_COMPA_vect )
   // Since mouse/driving has a lot of quick changes that need to be checked for
   // without the keyboard code getting in the way, so we handle those in an
   // interrupt ISR routine
-  if( ports[ kPortA ].mode == kPortDevice_AmiMouse) {
+  if( ports[ kPortA ].device == kPortDevice_AmiMouse) {
     Port_ReadA_Gray( kPortDevice_AmiMouse );
 
-  } else if ( ports[ kPortA ].mode == kPortDevice_STMouse) {
+  } else if ( ports[ kPortA ].device == kPortDevice_STMouse) {
     Port_ReadA_Gray( kPortDevice_STMouse );
 
-  } else if ( ports[ kPortA ].mode == kPortDevice_Driving) {
+  } else if ( ports[ kPortA ].device == kPortDevice_Driving) {
     Port_ReadA_Gray( kPortDevice_Driving );
   }
 

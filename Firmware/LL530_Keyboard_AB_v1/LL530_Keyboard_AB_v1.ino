@@ -4,9 +4,10 @@
  */
 
 
-#define kLL530_Version "LL530_Keyboard_AB v0.91"
+#define kLL530_Version "LL530_Keyboard_AB v0.92"
 
  /*
+ *  v0.92 2020-03-03 Fixed mouse control getting killed, sluggish
  *  v0.91 2020-01-01 Key presses from controller inputs working!
  *  v0.90 2019-12-16 More stuff working, docs written
  *  v0.89 2019-12-07 joy+mouse+kyb working, no configurability
@@ -120,6 +121,7 @@ uint8_t currentKeymap = kKeymap_US;
 
 void KeymapSet( unsigned char k )
 {
+  /*
   if ( k == kKeymap_Load ) {
     // load from EEPROM
     currentKeymap = EEPROM.read( kSetting_KEYMAP );
@@ -141,6 +143,7 @@ void KeymapSet( unsigned char k )
     case ( kKeymap_GB ): TypeStuff( "#GB/UK\n" ); break;
     case ( kKeymap_FI ): TypeStuff( "#FI/DK/NO/IS\n" ); break;
   }
+  */
 }
 
 #endif
