@@ -1,0 +1,36 @@
+Short:        CD32 Gamepad to USB Adapter
+Uploader:     ylf@gmx.de (Joerg Thomas)
+Author:       ylf@gmx.de (Joerg Thomas)
+Type:         docs/hard
+Version:      1.0
+Architecture: generic
+Distribution: Aminet
+Kurz:         CD32 Gamepad nach USB Adapter
+
+Long Description
+**********************
+CD32 to USB Adapter with Arduino Micro.
+This archives includes the arduino sketch and a small shematic
+how to wire Amiga Joystick / CD32 Gamepad or compatible with arduino micro.
+To run this, you also need the arduino joystick library from there:
+https://github.com/MHeironimus/ArduinoJoystickLibrary
+
+Short how to use
+**********************
+Extract this archive to your arduino sketches folder. Download and install the
+arduino joystick library from there:
+https://github.com/MHeironimus/ArduinoJoystickLibrary
+Compile and upload the sketch to your arduino.
+Build the hardware.
+Enjoy!
+
+Important Instructions
+**********************
+Notice, this code is provided as is, no warrenty from any hardware defects
+or functionality. I've testet this with the "Competition PRO / HoneyBee".
+Normal Joysticks shout also work, but with automatic fire funktion, there is
+a small risk of damage. The serial resistors should protect your arduino, but
+it is not shure, that the automatic fire function would be also save in any case.
+  
+(c) ylf@gmx.de
+
